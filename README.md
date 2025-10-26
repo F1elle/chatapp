@@ -1,11 +1,11 @@
 ## Chat app
----
+
 That's a showcase project. Real-time chatting app built using microservices and vertical slice architecture.
 
 
 
-## Built using
----
+## Tools
+
 - .NET 9
 - ASP.NET Core
 - Entity Framework Core
@@ -14,7 +14,7 @@ That's a showcase project. Real-time chatting app built using microservices and 
 
 
 ## Infrastructure
----
+
 - Docker
 - PostgreSQL for DB
 - Redis for caching
@@ -22,7 +22,7 @@ That's a showcase project. Real-time chatting app built using microservices and 
 
 
 ## Has the following structure
----
+
 - API Gateway
 - User service for handling user profiles related stuff
 - Media service for media
@@ -31,8 +31,8 @@ That's a showcase project. Real-time chatting app built using microservices and 
 
 
 
----
 ## Usage
+
 
 ```git clone https://github.com/F1elle/chatapp.git```
 

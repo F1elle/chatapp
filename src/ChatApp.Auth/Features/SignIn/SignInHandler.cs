@@ -1,0 +1,1 @@
+namespace ChatApp.Auth.Features.SignIn;

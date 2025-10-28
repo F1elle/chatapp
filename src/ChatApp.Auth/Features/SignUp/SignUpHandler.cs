@@ -6,15 +6,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Auth.Features.SignUp;
 
-public class SignupHandler
+public class SignUpHandler
 {
-    public async Task<Result> HandleSignUp(
-        SignUpRequest request,
+    private readonly AuthDbContext _dbContext;
+    private readonly PasswordHasher _passwordHasher;
+
+    public SignUpHandler(
         AuthDbContext dbContext,
-        IPasswordHasher passwordHasher,
+        PasswordHasher passwordHasher)
+    {
+        _dbContext = dbContext;
+        _passwordHasher = passwordHasher;
+    }
+
+    public async Task<Result> Handle(
+        SignUpRequest request,
         CancellationToken ct)
     {
-        var userAuth = dbContext.UserAuth;
+        var userAuth = _dbContext.UserAuth;
 
         var existingUser = await userAuth.FirstOrDefaultAsync(ua => ua.Email == request.Email, ct);
 
@@ -22,9 +31,9 @@ public class SignupHandler
             return Result.Failure("User with such email already exists");
 
 
-        var passwordHash = passwordHasher.HashPassword(request.Password);
+        var passwordHash = _passwordHasher.HashPassword(request.Password);
 
-        var createdUserAuth = new UserAuthInfo
+        var createdUserAuth = new UserAuth
         {
             Email = request.Email,
             PasswordHash = passwordHash
@@ -32,7 +41,7 @@ public class SignupHandler
 
         userAuth.Add(createdUserAuth);
 
-        await dbContext.SaveChangesAsync(ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return Result.Success();
     }

@@ -7,20 +7,10 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
 
-    private static void ConfigureUserAuthTable(ModelBuilder modelBuilder)
-    {
-        var builder = modelBuilder.Entity<UserAuthInfo>();
-
-        builder.ToTable("user_auth");
-
-        builder.HasKey(ua => ua.Id);
-        builder.HasIndex(ua => ua.Email).IsUnique();
-        builder.HasIndex(ua => ua.UserName).IsUnique();
-        builder.Property(ua => ua.PasswordHash).IsRequired(); // TODO: max length
-    }
-
-    public DbSet<UserAuthInfo> UserAuth { get; set; }
+    public DbSet<UserAuth> UserAuth { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 }

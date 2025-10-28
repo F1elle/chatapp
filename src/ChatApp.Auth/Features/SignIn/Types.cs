@@ -1,6 +1,11 @@
 namespace ChatApp.Auth.Features.SignIn;
 
 public record SignInRequest(
-    string Login,
+    string Email,
     string Password
+);
+
+public record SignInResponse(
+    string AccessToken,
+    string RefreshToken
 );

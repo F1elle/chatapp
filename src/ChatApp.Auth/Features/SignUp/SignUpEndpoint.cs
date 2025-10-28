@@ -1,6 +1,3 @@
-using ChatApp.Auth.Infrastructure.Security;
-using ChatApp.Auth.Infrastructure.Data;
-
 namespace ChatApp.Auth.Features.SignUp;
 
 public static class SignUpEndpoint
@@ -14,12 +11,10 @@ public static class SignUpEndpoint
 
     private static async Task<IResult> SignUp(
             SignUpRequest request,
-            SignupHandler handler,
-            AuthDbContext dbContext,
-            IPasswordHasher passwordHasher,
+            SignUpHandler handler,
             CancellationToken ct)
     {
-        var result = await handler.HandleSignUp(request, dbContext, passwordHasher, ct);
+        var result = await handler.Handle(request, ct);
 
 
         return result.IsSuccess

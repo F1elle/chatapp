@@ -1,18 +1,11 @@
-using ChatApp.Auth.Common.Middleware;
+using ChatApp.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProblemDetails(configure =>
-{
-    configure.CustomizeProblemDetails = context =>
-    {
-        context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
-    };
-});
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.ConfigureAppServices();
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+await app.Configure();
 
 app.Run();

@@ -16,10 +16,6 @@ public class UserAuthConfiguration : IEntityTypeConfiguration<UserAuth>
             .IsUnique()
             .HasDatabaseName("idx_user_auth_email");
         
-        builder.HasIndex(ua => ua.UserName)
-            .IsUnique()
-            .HasDatabaseName("idx_user_auth_username");
-        
         builder.Property(ua => ua.Id)
             .IsRequired()
             .ValueGeneratedNever();
@@ -27,10 +23,6 @@ public class UserAuthConfiguration : IEntityTypeConfiguration<UserAuth>
         builder.Property(ua => ua.Email)
             .IsRequired()
             .HasMaxLength(256);
-        
-        builder.Property(ua => ua.UserName)
-            .IsRequired()
-            .HasMaxLength(50);
         
         builder.Property(ua => ua.PasswordHash)
             .IsRequired()

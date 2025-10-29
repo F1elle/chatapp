@@ -51,8 +51,7 @@ public class SignUpHandler
         await _bus.Publish(new UserSignedUpEvent(
             UserId: createdUserAuth.Id,
             Email: request.Email,
-            FirstName: request.FirstName,
-            LastName: request.LastName,
+            DisplayName: request.DisplayName ?? request.Email.Split('@')[0],
             SignedUpAt: createdUserAuth.CreatedAt
         ));
 

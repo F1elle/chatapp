@@ -3,7 +3,6 @@ namespace ChatApp.Auth.Infrastructure.Messaging.Events;
 public record UserSignedUpEvent(
     Guid UserId,
     string Email,
-    string FirstName,
-    string LastName,
+    string DisplayName,
     DateTime SignedUpAt
 );

@@ -35,11 +35,32 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         ports: # TODO: remove when expose api gateway
-            - "8080:8080" 
-            - "8081:8081"
+            - "5000:5000" 
+            - "5001:5001"
         build:
             context: .
             dockerfile: src/ChatApp.Auth/Dockerfile
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Docker
+        depends_on:
+            postgres:
+                condition: service_healthy
+                restart: true
+            rabbitmq:
+                condition: service_healthy
+                restart: true
+        networks:
+            - chatapp-network
+    
+    user-service:
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        ports: # TODO: remove when expose api gateway
+            - "5002:5002" 
+            - "5003:5003"
+        build:
+            context: .
+            dockerfile: src/ChatApp.User/Dockerfile
         environment:
             - ASPNETCORE_ENVIRONMENT=Docker
         depends_on:

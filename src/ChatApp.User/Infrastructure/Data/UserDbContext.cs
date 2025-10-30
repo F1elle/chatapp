@@ -21,9 +21,20 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         builder.ToTable("user_profiles");
 
         builder.HasKey(up => up.Id);
-        builder.HasIndex(up => up.UserName).IsUnique();
-        builder.Property(up => up.FirstName).HasMaxLength(50);
-        builder.Property(up => up.LastName).HasMaxLength(50);
+        builder.Property(up => up.Id)
+            .IsRequired()
+            .ValueGeneratedNever();
+
+        builder.HasIndex(up => up.UserTag)
+            .IsUnique()
+            .HasDatabaseName("idx_user_tag");
+
+        builder.Property(up => up.DisplayName)
+            .HasMaxLength(50)
+            .IsRequired();
+
+        builder.Property(up => up.UserTag).HasMaxLength(40);
+
         builder.Property(up => up.Bio).HasMaxLength(250);
     }
 

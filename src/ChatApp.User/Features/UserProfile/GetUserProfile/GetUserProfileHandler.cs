@@ -1,0 +1,1 @@
+namespace ChatApp.User.Features.UserProfile.GetUserProfile;

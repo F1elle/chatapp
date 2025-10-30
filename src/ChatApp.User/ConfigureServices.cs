@@ -1,26 +1,22 @@
 using System.Text;
-using ChatApp.Auth.Common.Middleware;
-using ChatApp.Auth.Features.SignIn;
-using ChatApp.Auth.Features.SignUp;
-using ChatApp.Auth.Features.TokenRefresh;
-using ChatApp.Auth.Features.TokenRevoke;
-using ChatApp.Auth.Infrastructure.Data;
-using ChatApp.Auth.Infrastructure.Messaging;
-using ChatApp.Auth.Infrastructure.Messaging.Events;
-using ChatApp.Auth.Infrastructure.Security;
+using ChatApp.User.Common.Middleware;
+using ChatApp.User.Features.UserProfile.CreateUserProfile;
+using ChatApp.User.Infrastructure.Data;
+using ChatApp.User.Infrastructure.Messaging;
+using ChatApp.User.Infrastructure.Messaging.Handlers;
+using ChatApp.User.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Rebus.Config;
-using Rebus.Routing.TypeBased;
+using Rebus.Retry.Simple;
 
-namespace ChatApp.Auth;
+namespace ChatApp.User;
 
 public static class ConfigureServices
 {
     public static void ConfigureAppServices(this WebApplicationBuilder builder)
     {
-        
         builder.Services.AddProblemDetails(configure =>
         {
             configure.CustomizeProblemDetails = context =>
@@ -31,10 +27,8 @@ public static class ConfigureServices
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
         builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
-
 
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
@@ -55,8 +49,7 @@ public static class ConfigureServices
 
         builder.Services.AddAuthorization();
 
-        
-        builder.Services.AddDbContext<AuthDbContext>(options =>
+        builder.Services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(
                 builder.Configuration.GetConnectionString("DefaultConnection"),
                 npgsqlOptions =>
@@ -67,19 +60,12 @@ public static class ConfigureServices
                         errorCodesToAdd: null
                     );
                     npgsqlOptions.CommandTimeout(30);
-                }));
-
+                }
+            ));
 
         builder.Services.AddHttpContextAccessor();
 
-
-        builder.Services.AddSingleton<TokenProvider>();
-        builder.Services.AddSingleton<PasswordHasher>();
-        builder.Services.AddScoped<SignInHandler>();
-        builder.Services.AddScoped<SignUpHandler>();
-        builder.Services.AddScoped<TokenRefreshHandler>();
-        builder.Services.AddScoped<TokenRevokeHandler>();
-
+        builder.Services.AddScoped<CreateUserProfileHandler>();
 
         var rabbitMqOptions = builder.Configuration
             .GetSection(RabbitMqOptions.SectionName)
@@ -90,8 +76,15 @@ public static class ConfigureServices
                 connectionString: rabbitMqOptions!.ConnectionString,
                 inputQueueName: rabbitMqOptions!.InputQueueName
             ))
-            .Routing(r => r.TypeBased().Map<UserSignedUpEvent>(rabbitMqOptions!.Routing)));
+            .Options(o =>
+            {
+                o.RetryStrategy(maxDeliveryAttempts: 3, secondLevelRetriesEnabled: true);
 
-        builder.Services.AutoRegisterHandlersFromAssemblyOf<Program>();
+                o.SetNumberOfWorkers(1);
+                o.SetMaxParallelism(1);
+            }));
+
+        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
+
     }
 }

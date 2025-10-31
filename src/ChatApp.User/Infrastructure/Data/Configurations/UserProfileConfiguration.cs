@@ -26,5 +26,8 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
         builder.Property(up => up.UserTag).HasMaxLength(40);
 
         builder.Property(up => up.Bio).HasMaxLength(250);
+
+        builder.HasMany(up => up.Contacts)
+            .WithMany();
     }
 }

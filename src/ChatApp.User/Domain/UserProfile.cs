@@ -10,4 +10,6 @@ public class UserProfile
     public Guid? ProfilePictureId { get; set; } = null;
     public required string UserTag { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public IEnumerable<UserProfile> Contacts { get; set; } = [];
 }

@@ -15,10 +15,9 @@ public class UserAuthConfiguration : IEntityTypeConfiguration<UserAuth>
         builder.HasIndex(ua => ua.Email)
             .IsUnique()
             .HasDatabaseName("idx_user_auth_email");
-        
+
         builder.Property(ua => ua.Id)
-            .IsRequired()
-            .ValueGeneratedNever();
+            .IsRequired();
         
         builder.Property(ua => ua.Email)
             .IsRequired()

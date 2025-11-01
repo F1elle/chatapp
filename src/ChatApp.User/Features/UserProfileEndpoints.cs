@@ -1,4 +1,5 @@
 using ChatApp.User.Features.UserProfile.GetUserProfile;
+using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 
 namespace ChatApp.User.Features;
 
@@ -18,9 +19,10 @@ public static class UserEndpoints
     
     private static async Task<IResult> GetUserProfileRoute(
         Guid id,
-        GetUserProfileHandler handler)
+        GetUserProfileHandler handler,
+        CancellationToken ct)
     {
-        var result = await handler.Handle(id);
+        var result = await handler.Handle(id, ct);
 
         return result.IsSuccess
             ? Results.Ok(result.Value)

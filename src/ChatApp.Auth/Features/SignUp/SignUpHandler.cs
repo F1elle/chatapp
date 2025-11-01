@@ -48,7 +48,7 @@ public class SignUpHandler
 
         await _dbContext.SaveChangesAsync(ct);
 
-        await _bus.Publish(new UserSignedUpEvent(
+        await _bus.Send(new UserSignedUpEvent(
             UserId: createdUserAuth.Id,
             Email: request.Email,
             DisplayName: request.DisplayName ?? request.Email.Split('@')[0],

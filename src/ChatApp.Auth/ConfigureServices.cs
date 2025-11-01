@@ -20,7 +20,7 @@ public static class ConfigureServices
 {
     public static void ConfigureAppServices(this WebApplicationBuilder builder)
     {
-        
+
         builder.Services.AddProblemDetails(configure =>
         {
             configure.CustomizeProblemDetails = context =>
@@ -55,7 +55,7 @@ public static class ConfigureServices
 
         builder.Services.AddAuthorization();
 
-        
+
         builder.Services.AddDbContext<AuthDbContext>(options =>
             options.UseNpgsql(
                 builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -85,13 +85,18 @@ public static class ConfigureServices
             .GetSection(RabbitMqOptions.SectionName)
             .Get<RabbitMqOptions>();
 
-        builder.Services.AddRebus(configure => configure
-            .Transport(t => t.UseRabbitMq(
-                connectionString: rabbitMqOptions!.ConnectionString,
-                inputQueueName: rabbitMqOptions!.InputQueueName
-            ))
-            .Routing(r => r.TypeBased().Map<UserSignedUpEvent>(rabbitMqOptions!.Routing)));
-
         builder.Services.AutoRegisterHandlersFromAssemblyOf<Program>();
+
+        builder.Services.AddRebus(configure => configure
+            .Logging(l => l.Console(minLevel: Rebus.Logging.LogLevel.Info))
+            .Transport(t => t.UseRabbitMqAsOneWayClient(
+                connectionString: rabbitMqOptions!.ConnectionString
+            ))
+            .Routing(r => r.TypeBased().Map<UserSignedUpEvent>(rabbitMqOptions!.Routing))
+            .Options(o =>
+            {
+                o.SetMaxParallelism(1);
+                o.SetNumberOfWorkers(1);
+            }));
     }
 }

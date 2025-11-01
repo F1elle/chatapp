@@ -1,6 +1,8 @@
 using System.Text;
+using ChatApp.Auth.Infrastructure.Messaging.Events;
 using ChatApp.User.Common.Middleware;
 using ChatApp.User.Features.UserProfile.CreateUserProfile;
+using ChatApp.User.Features.UserProfile.GetUserProfile;
 using ChatApp.User.Infrastructure.Data;
 using ChatApp.User.Infrastructure.Messaging;
 using ChatApp.User.Infrastructure.Messaging.Handlers;
@@ -8,6 +10,7 @@ using ChatApp.User.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Retry.Simple;
 
@@ -66,10 +69,13 @@ public static class ConfigureServices
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddScoped<CreateUserProfileHandler>();
+        builder.Services.AddScoped<GetUserProfileHandler>();
 
         var rabbitMqOptions = builder.Configuration
             .GetSection(RabbitMqOptions.SectionName)
             .Get<RabbitMqOptions>();
+
+        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
 
         builder.Services.AddRebus(configure => configure
             .Transport(t => t.UseRabbitMq(
@@ -83,8 +89,5 @@ public static class ConfigureServices
                 o.SetNumberOfWorkers(1);
                 o.SetMaxParallelism(1);
             }));
-
-        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
-
     }
 }

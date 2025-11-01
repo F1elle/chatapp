@@ -12,8 +12,7 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
 
         builder.HasKey(up => up.Id);
         builder.Property(up => up.Id)
-            .IsRequired()
-            .ValueGeneratedNever();
+            .IsRequired();
 
         builder.HasIndex(up => up.UserTag)
             .IsUnique()

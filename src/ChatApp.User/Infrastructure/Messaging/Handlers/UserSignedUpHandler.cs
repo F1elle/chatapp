@@ -1,4 +1,4 @@
-using ChatApp.Auth.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Messaging.Events;
 using ChatApp.User.Features.UserProfile.CreateUserProfile;
 using Rebus.Handlers;
 

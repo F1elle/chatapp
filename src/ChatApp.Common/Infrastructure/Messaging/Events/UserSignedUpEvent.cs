@@ -1,4 +1,4 @@
-namespace ChatApp.Auth.Infrastructure.Messaging.Events;
+namespace ChatApp.Common.Infrastructure.Messaging.Events;
 
 public record UserSignedUpEvent(
     Guid UserId,

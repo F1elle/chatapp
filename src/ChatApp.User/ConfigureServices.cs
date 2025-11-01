@@ -1,5 +1,4 @@
 using System.Text;
-using ChatApp.Auth.Infrastructure.Messaging.Events;
 using ChatApp.User.Common.Middleware;
 using ChatApp.User.Features.UserProfile.CreateUserProfile;
 using ChatApp.User.Features.UserProfile.GetUserProfile;
@@ -10,7 +9,6 @@ using ChatApp.User.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Retry.Simple;
 

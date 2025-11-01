@@ -4,7 +4,7 @@ using ChatApp.Auth.Infrastructure.Data;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Rebus.Bus;
-using ChatApp.Auth.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Messaging.Events;
 
 namespace ChatApp.Auth.Features.SignUp;
 

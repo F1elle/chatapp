@@ -21,4 +21,8 @@
     <PackageReference Include="Rebus.ServiceProvider" Version="10.6.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ChatApp.Common\ChatApp.Common.csproj" />
+  </ItemGroup>
+
 </Project>

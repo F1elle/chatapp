@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatApp.Api", "ChatApp.Api\ChatApp.Api.csproj", "{1875E6E1-2D2F-425B-8923-E74C78916534}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatApp.Auth", "ChatApp.Auth\ChatApp.Auth.csproj", "{FEA4135D-D270-447C-B2F1-6B1D43629823}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatApp.Media", "ChatApp.Media\ChatApp.Media.csproj", "{B56FA3DA-C5C1-42FE-B845-384F0B5F47D7}"

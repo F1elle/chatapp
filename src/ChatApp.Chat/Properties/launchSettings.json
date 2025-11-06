@@ -18,6 +18,16 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_HTTPS_PORTS": "5005",
+        "ASPNETCORE_HTTP_PORTS": "5004"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
     }
   }
 }

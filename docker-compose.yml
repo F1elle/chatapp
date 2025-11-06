@@ -74,6 +74,28 @@ services:
                 restart: true
         networks:
             - chatapp-network
+
+    chat-service:
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        ports: # TODO: remove when expose api gateway
+            - "5004:5004" 
+            - "5005:5005"
+        build:
+            context: .
+            dockerfile: src/ChatApp.Chat/Dockerfile
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Docker
+            - ASPNETCORE_URLS=http://+:5004 #;https://+:5005 for future https
+        depends_on:
+            postgres:
+                condition: service_healthy
+                restart: true
+            rabbitmq:
+                condition: service_healthy
+                restart: true
+        networks:
+            - chatapp-network
             
 
 networks:

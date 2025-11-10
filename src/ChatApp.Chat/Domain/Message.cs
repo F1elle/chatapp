@@ -15,5 +15,7 @@ public class Message
 
     public Guid ReplyToMessageId { get; set; }
 
+    public List<Guid> SeenByUserIds { get; set; } = [];
+
     public bool IsEdited => EditedAt != null;
 }

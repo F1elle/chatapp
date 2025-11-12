@@ -1,6 +1,6 @@
 namespace ChatApp.Auth.Features.SignUp;
 
-public record SignUpRequest(
+public sealed record SignUpRequest(
     string Email,
     string Password,
     string? DisplayName

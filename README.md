@@ -1,6 +1,6 @@
 ## Chat app
 
-That's a showcase project. Real-time chatting app built using microservices and vertical slice architecture.
+That's a showcase project. Real-time chatting app built with microservices and kinda VSA.
 
 
 
@@ -10,23 +10,23 @@ That's a showcase project. Real-time chatting app built using microservices and 
 - ASP.NET Core
 - Entity Framework Core
 - SignalR
-- YARP as an API Gateway
 
 
 ## Infrastructure
 
 - Docker
 - PostgreSQL for DB
-- Redis for caching
+- Redis for caching (in the future)
 - RabbitMQ as a message broker
+- Nginx as an API Gateway (in the future)
 
 
 ## Has the following structure
 
-- API Gateway
+- API Gateway (in the future)
 - User service for handling user profiles related stuff
-- Media service for media
-- Chat service for real time chatting
+- Media service for media (not implemented yet)
+- Chat service for real time chatting (in progress rn)
 - Auth service for authentication
 
 

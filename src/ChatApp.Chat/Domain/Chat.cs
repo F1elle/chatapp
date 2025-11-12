@@ -9,8 +9,9 @@ public class Chat
     public required ChatType Type { get; set; }
     public string? Name { get; set; } = null;
     public Guid? CreatedBy { get; set; }
-    public DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public Guid? LastMessageId { get; set; }
+    public DateTime? LastMessageAt { get; set; }
 
-    public List<Message> Messages { get; set; } = [];
     public List<ChatParticipant> ChatParticipants { get; set; } = [];
 }

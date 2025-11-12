@@ -12,9 +12,9 @@ public class SendMessageHandler
         _dbContext = dbContext;
     }
     
-    public async Task Handle(SendMessageCommand command)
+    public async Task Handle(SendMessageRequest request)
     {
-        _dbContext.Add(command.Message);
+        _dbContext.Add(request.Message);
         await _dbContext.SaveChangesAsync();
     }
 }

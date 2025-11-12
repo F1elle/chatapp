@@ -14,9 +14,9 @@ public class GetUserProfileHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Result<Domain.UserProfile>> Handle(Guid id, CancellationToken ct)
+    public async Task<Result<Domain.UserProfile>> Handle(GetUserProfileRequest request, CancellationToken ct)
     {
-        var userProfile = await _dbContext.UserProfiles.FirstOrDefaultAsync(up => up.Id == id, ct);
+        var userProfile = await _dbContext.UserProfiles.FirstOrDefaultAsync(up => up.Id == request.Id, ct);
 
         return userProfile == null
             ? Result.Failure<Domain.UserProfile>("User not found")

@@ -22,7 +22,7 @@ public static class UserEndpoints
         GetUserProfileHandler handler,
         CancellationToken ct)
     {
-        var result = await handler.Handle(id, ct);
+        var result = await handler.Handle(new GetUserProfileRequest(id), ct);
 
         return result.IsSuccess
             ? Results.Ok(result.Value)

@@ -1,8 +1,8 @@
 namespace ChatApp.Auth.Features.TokenRefresh;
 
-public record TokenRefreshRequest(string RefreshToken);
+public sealed record TokenRefreshRequest(string RefreshToken);
 
-public record TokenRefreshResponse(
+public sealed record TokenRefreshResponse(
     string AccessToken,
     string RefreshToken
 );

@@ -1,3 +1,3 @@
 namespace ChatApp.Auth.Features.TokenRevoke;
 
-public record TokenRevokeRequest(string RefreshToken);
+public sealed record TokenRevokeRequest(string RefreshToken);

@@ -1,4 +1,3 @@
-using ChatApp.Chat.Domain;
 using ChatApp.Chat.Infrastructure.Data;
 
 namespace ChatApp.Chat.Features.Chat.SendMessage;

@@ -1,5 +1,6 @@
 using ChatApp.Chat.Domain;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Chat.Infrastructure.Redis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,14 @@ using StackExchange.Redis;
 namespace ChatApp.Chat.Infrastructure.Hubs;
 
 // TODO: make this file less bullshit
+// TODO: cancellation tokens
+// TODO: exception handlers
+// TODO: handle multiple devices connection
 
 public interface IChatClient // TODO: move this interface somewhere else
 {
     public Task ReceiveMessage(Message message);
-    public Task ReceiveSystemMessage(Message message);
+    public Task ReceiveAdminMessage(Message message);
     public Task ReceiveSystemMessage(string message);
     public Task ReceiveNotification(Message message); // TODO: replace message with notification
     public Task UserJoined(Guid userId);
@@ -41,7 +45,7 @@ public class ChatHub : Hub<IChatClient>
     {
         var userId = GetUserId();
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}");
+        await Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.UserGroup(userId));
 
         _logger.LogInformation("User {UserId} connected", userId);
 
@@ -59,9 +63,9 @@ public class ChatHub : Hub<IChatClient>
         if (!isParticipant)
             throw new HubException("Access denied");
         
-        await Groups.AddToGroupAsync(Context.ConnectionId, chatId.ToString());
+        await Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
 
-        await redis.SetAddAsync($"chat:{chatId}:acitve", userId.ToString());
+        await redis.SetAddAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 
         if (!Context.Items.ContainsKey("OpenChats"))
             Context.Items["OpenChats"] = new HashSet<Guid>();
@@ -75,7 +79,7 @@ public class ChatHub : Hub<IChatClient>
             chatId
         );
         
-        await Clients.OthersInGroup(chatId.ToString())
+        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
             .UserJoined(userId);
     }
 
@@ -84,11 +88,14 @@ public class ChatHub : Hub<IChatClient>
         var userId = GetUserId();
         var redis = _redis.GetDatabase();
 
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId.ToString());
-        await redis.SetRemoveAsync($"chat:{chatId}:acive", userId.ToString());
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
+        await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 
-        var openChats = Context.Items["OpenChats"] as HashSet<Guid>;
-        openChats?.Remove(chatId);
+        if (Context.Items.TryGetValue("OpenChats", out var value)
+            && value is HashSet<Guid> openChats)
+        {
+            openChats.Remove(chatId);
+        }
 
         _logger.LogInformation(
             "User {UserId} left and marked inactive in chat {ChatId}",
@@ -96,7 +103,7 @@ public class ChatHub : Hub<IChatClient>
             chatId
         );
 
-        await Clients.OthersInGroup(chatId.ToString())
+        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
             .UserLeft(userId);
     }
 
@@ -105,7 +112,7 @@ public class ChatHub : Hub<IChatClient>
         var senderId = GetUserId();
         var redis = _redis.GetDatabase();
 
-        if (string.IsNullOrWhiteSpace(message.Content) || message.Content.Length > 4096)
+        if (string.IsNullOrWhiteSpace(message.Content) || message.Content.Length > 4096) // TODO: remove magic number 
         {
             await Clients.Caller.ReceiveSystemMessage("Error: invalid message"); // TODO: maybe change method
             return;
@@ -124,7 +131,7 @@ public class ChatHub : Hub<IChatClient>
         await _dbContext.SaveChangesAsync(); // TODO: cancellationToken
 
 
-        await Clients.Group(message.ChatId.ToString())
+        await Clients.Group(SignalRGroups.ChatGroup(message.ChatId))
             .ReceiveMessage(message);
 
         _logger.LogInformation(
@@ -140,21 +147,32 @@ public class ChatHub : Hub<IChatClient>
 
         var notificationsSent = 0;
 
-        foreach (var participantId in participants)
+        
+        var activeParticipantsRaw = await redis.SetMembersAsync(RedisKeys.ChatActive(message.ChatId));
+
+        var activeParticipants = new HashSet<Guid>();
+        foreach (var raw in activeParticipantsRaw)
         {
-            var isActive = await redis.SetContainsAsync(
-                $"chat:{message.ChatId}:active",
-                participantId.ToString()
-            );
-
-            if (!isActive)
+            if (Guid.TryParse(raw.ToString(), out var parsed))
+                activeParticipants.Add(parsed);
+        }    
+        
+        foreach (var participant in participants)
+        {
+            if (!activeParticipants.Contains(participant))
             {
-                await Clients.Group($"user:{participantId}")
+                await Clients.Group(SignalRGroups.UserGroup(participant))
                     .ReceiveNotification(message);
-
-                notificationsSent++;
             }
         }
+        
+        // maybe make it async 
+
+        // var tasks = participants
+        // .Where(p => !activeParticipants.Contains(p))
+        // .Select(p => Clients.Group(SignalRGroups.UserGroup(p)).ReceiveNotification(message));
+        // await Task.WhenAll(tasks);
+
 
         _logger.LogInformation(
             "Sent {Count} notifications for message {MessageId} in chat {ChatId}",
@@ -177,9 +195,9 @@ public class ChatHub : Hub<IChatClient>
             {
                 foreach (var chatId in openChats)
                 {
-                    await redis.SetRemoveAsync($"chat:{chatId}:active", userId.ToString());
+                    await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 
-                    await Clients.OthersInGroup(chatId.ToString())
+                    await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
                         .UserLeft(userId);
                 }
             }

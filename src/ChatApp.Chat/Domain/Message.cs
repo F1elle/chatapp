@@ -24,4 +24,5 @@ public class Message
     public bool IsEdited => EditedAt != null;
     public bool IsRead => SeenByParticipants.Any();
     public int RepliesCount => Replies.Count;
+    public int seenCount => SeenByParticipants.Count;
 }

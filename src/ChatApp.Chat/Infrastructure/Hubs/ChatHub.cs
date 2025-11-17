@@ -1,11 +1,10 @@
 using ChatApp.Chat.Domain;
+using ChatApp.Chat.Features.Chat.CloseChat;
+using ChatApp.Chat.Features.Chat.OpenChat;
 using ChatApp.Chat.Features.Chat.SendMessage;
 using ChatApp.Chat.Infrastructure.Data;
-using ChatApp.Chat.Infrastructure.Redis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 
 namespace ChatApp.Chat.Infrastructure.Hubs;
 
@@ -13,6 +12,7 @@ namespace ChatApp.Chat.Infrastructure.Hubs;
 // TODO: cancellation tokens
 // TODO: exception handlers
 // TODO: handle multiple devices connection
+// TODO: functional extensions
 
 public interface IChatClient // TODO: move this interface somewhere else
 {
@@ -20,7 +20,7 @@ public interface IChatClient // TODO: move this interface somewhere else
     public Task ReceiveAdminMessage(Message message);
     public Task ReceiveSystemMessage(string message);
     public Task ReceiveNotification(Message message); // TODO: replace message with notification
-    public Task UserJoined(Guid userId);
+    public Task UserJoined(Guid userId); // TODO: that will be for real join chat operation now on
     public Task UserLeft(Guid userId);
 }
 
@@ -29,20 +29,23 @@ public interface IChatClient // TODO: move this interface somewhere else
 public class ChatHub : Hub<IChatClient>
 {
     private readonly ChatDbContext _dbContext;
-    private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<ChatHub> _logger;
-    private readonly SendMessageHandler _handler;
+    private readonly SendMessageHandler _sendMessageHandler;
+    private readonly OpenChatHandler _openChatHandler;
+    private readonly CloseChatHandler _closeChatHandler;
 
     public ChatHub(
         ChatDbContext dbContext,
-        IConnectionMultiplexer redis, 
         ILogger<ChatHub> logger,
-        SendMessageHandler sendMessageHandler)
+        SendMessageHandler sendMessageHandler,
+        OpenChatHandler openChatHandler,
+        CloseChatHandler closeChatHandler)
     {
         _dbContext = dbContext;
-        _redis = redis;
         _logger = logger;
-        _handler = sendMessageHandler;
+        _sendMessageHandler = sendMessageHandler;
+        _openChatHandler = openChatHandler;
+        _closeChatHandler = closeChatHandler;
     }
 
     public override async Task OnConnectedAsync()
@@ -56,69 +59,48 @@ public class ChatHub : Hub<IChatClient>
         await base.OnConnectedAsync();
     }
 
-    public async Task JoinChat(Guid chatId)
+    public async Task OpenChat(Guid chatId, CancellationToken ct)
     {
         var userId = GetUserId();
-        var redis = _redis.GetDatabase();
 
-        var isParticipant = await _dbContext.ChatParticipants
-            .AnyAsync(cp => cp.ChatId == chatId && cp.UserId == userId);
+        var response = await _openChatHandler.Handle(new OpenChatRequest(chatId, userId), ct);
 
-        if (!isParticipant)
+        if (!response.HasAccess)
             throw new HubException("Access denied");
-        
+
         await Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
 
-        await redis.SetAddAsync(RedisKeys.ChatActive(chatId), userId.ToString());
-
-        if (!Context.Items.ContainsKey("OpenChats"))
-            Context.Items["OpenChats"] = new HashSet<Guid>();
-
-        var OpenChats = Context.Items["OpenChats"] as HashSet<Guid>;
-        OpenChats!.Add(chatId);
+        TrackOpenChat(chatId);
 
         _logger.LogInformation(
             "User {UserId} joined and marked active in chat {ChatId}",
             userId,
             chatId
         );
-        
-        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
-            .UserJoined(userId);
     }
 
-    public async Task LeaveChat(Guid chatId)
+    public async Task LeaveChat(Guid chatId, CancellationToken ct)
     {
         var userId = GetUserId();
-        var redis = _redis.GetDatabase();
+
+        await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId), ct);
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
-        await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 
-        if (Context.Items.TryGetValue("OpenChats", out var value)
-            && value is HashSet<Guid> openChats)
-        {
-            openChats.Remove(chatId);
-        }
+        UntrackOpenChat(chatId);
 
         _logger.LogInformation(
             "User {UserId} left and marked inactive in chat {ChatId}",
             userId,
             chatId
         );
-
-        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
-            .UserLeft(userId);
     }
 
     public async Task SendMessage(string messageContent, Guid chatId, CancellationToken ct) // make SendMessageRequest
     {
         var senderId = GetUserId();
-        var redis = _redis.GetDatabase();
 
-        
-
-        var response = await _handler.Handle(new SendMessageRequest(senderId, chatId, messageContent), ct); 
+        var response = await _sendMessageHandler.Handle(new SendMessageRequest(senderId, chatId, messageContent), ct); 
 
         // sending message to active participants 
         await Clients.Group(SignalRGroups.ChatGroup(chatId))
@@ -134,7 +116,6 @@ public class ChatHub : Hub<IChatClient>
         {
             await Clients.Group(SignalRGroups.UserGroup(participant))
                 .ReceiveNotification(response.Message);
-
         }
        
         // TODO: maybe make it async 
@@ -163,32 +144,43 @@ public class ChatHub : Hub<IChatClient>
             await base.OnDisconnectedAsync(exception);
             return;
         }
-        
-        if (userId != null)
+
+        var openChats = GetTrackedChats();
+
+        foreach (var chatId in openChats)
         {
-            var redis = _redis.GetDatabase();
-
-            if (Context.Items.TryGetValue("OpenChats", out var chatsObj))
-            {
-                var openChats = chatsObj as HashSet<Guid>;
-                if (openChats != null)
-                {
-                    foreach (var chatId in openChats)
-                    {
-                        await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
-
-                        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
-                            .UserLeft((Guid)userId);
-                    }
-                }
-            }
+            await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId.Value), CancellationToken.None);
         }
-
+        
         _logger.LogInformation("User {UserId} disconnected", userId);
 
         await base.OnDisconnectedAsync(exception);
     }
     
+    private void TrackOpenChat(Guid chatId)
+    {
+        if (!Context.Items.ContainsKey("OpenChats"))
+            Context.Items["OpenChats"] = new HashSet<Guid>();
+
+        (Context.Items["OpenChats"] as HashSet<Guid>)!.Add(chatId);
+    }
+
+    private void UntrackOpenChat(Guid chatId)
+    {
+        if (Context.Items.TryGetValue("OpenChats", out var value)
+            && value is HashSet<Guid> openChats)
+        {
+            openChats.Remove(chatId);
+        }
+    }
+
+    private HashSet<Guid> GetTrackedChats()
+    {
+        return Context.Items.TryGetValue("OpenChats", out var value)
+            && value is HashSet<Guid> trackedChats
+            ? trackedChats
+            : new HashSet<Guid>();
+    }
 
     private Guid GetUserId()
     {

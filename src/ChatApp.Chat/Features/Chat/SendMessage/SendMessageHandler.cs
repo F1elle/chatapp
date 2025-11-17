@@ -9,24 +9,25 @@ public class SendMessageHandler
 {
     private readonly ChatDbContext _dbContext;
     private readonly IChatPresenceService _presenceService;
+    private readonly IChatAccessService _accessService;
     public SendMessageHandler(
         ChatDbContext dbContext,
-        IChatPresenceService chatPresenceService)
+        IChatPresenceService chatPresenceService,
+        IChatAccessService chatAccessService)
     {
         _dbContext = dbContext;
         _presenceService = chatPresenceService;
+        _accessService = chatAccessService;
     }
     
     public async Task<SendMessageResponse> Handle(SendMessageRequest request, CancellationToken ct) // TODO: Result<Message>
     {
-        var isParticipant = await _dbContext.ChatParticipants
-            .AnyAsync(cp => cp.ChatId == request.ChatId && cp.UserId == request.SenderId);
+        var hasAccess = await _accessService.CanAccessChatAsync(request.SenderId, request.ChatId, ct);       
 
-        if (!isParticipant)
+        if (!hasAccess)
         {
             throw new Exception("Access denied");
         }
-
 
         // defining inactive users
         var participants = await _dbContext.ChatParticipants
@@ -52,6 +53,7 @@ public class SendMessageHandler
             Content = request.Content,
             Type = request.Type
         };
+
         _dbContext.Add(message);
         await _dbContext.SaveChangesAsync(ct);
 

@@ -1,4 +1,5 @@
 using ChatApp.Chat.Domain;
+using ChatApp.Chat.Features.Chat.SendMessage;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Redis;
 using Microsoft.AspNetCore.Authorization;
@@ -30,15 +31,18 @@ public class ChatHub : Hub<IChatClient>
     private readonly ChatDbContext _dbContext;
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<ChatHub> _logger;
+    private readonly SendMessageHandler _handler;
 
     public ChatHub(
         ChatDbContext dbContext,
         IConnectionMultiplexer redis, 
-        ILogger<ChatHub> logger)
+        ILogger<ChatHub> logger,
+        SendMessageHandler sendMessageHandler)
     {
         _dbContext = dbContext;
         _redis = redis;
         _logger = logger;
+        _handler = sendMessageHandler;
     }
 
     public override async Task OnConnectedAsync()
@@ -107,66 +111,33 @@ public class ChatHub : Hub<IChatClient>
             .UserLeft(userId);
     }
 
-    public async Task SendMessage(Message message)
+    public async Task SendMessage(string messageContent, Guid chatId, CancellationToken ct) // make SendMessageRequest
     {
         var senderId = GetUserId();
         var redis = _redis.GetDatabase();
 
-        if (string.IsNullOrWhiteSpace(message.Content) || message.Content.Length > 4096) // TODO: remove magic number 
-        {
-            await Clients.Caller.ReceiveSystemMessage("Error: invalid message"); // TODO: maybe change method
-            return;
-        }
+        
 
-        var isParticipant = await _dbContext.ChatParticipants
-            .AnyAsync(cp => cp.ChatId == message.ChatId && cp.UserId == message.ParticipantSenderId);
+        var response = await _handler.Handle(new SendMessageRequest(senderId, chatId, messageContent), ct); 
 
-        if (!isParticipant)
-        {
-            await Clients.Caller.ReceiveSystemMessage("Error: access denied");
-            return;
-        }
-
-        _dbContext.Messages.Add(message);
-        await _dbContext.SaveChangesAsync(); // TODO: cancellationToken
-
-
-        await Clients.Group(SignalRGroups.ChatGroup(message.ChatId))
-            .ReceiveMessage(message);
+        // sending message to active participants 
+        await Clients.Group(SignalRGroups.ChatGroup(chatId))
+            .ReceiveMessage(response.Message);
 
         _logger.LogInformation(
             "Message {MessageId} sent to active users in chat {ChatId}",
-            message.Id,
-            message.ChatId
+            response.Message.Id,
+            response.Message.ChatId
         );
 
-        var participants = await _dbContext.ChatParticipants
-            .Where(cp => cp.ChatId == message.ChatId && cp.UserId != message.ParticipantSenderId)
-            .Select(cp => cp.UserId)
-            .ToListAsync(); // TODO: ct
-
-        var notificationsSent = 0;
-
-        
-        var activeParticipantsRaw = await redis.SetMembersAsync(RedisKeys.ChatActive(message.ChatId));
-
-        var activeParticipants = new HashSet<Guid>();
-        foreach (var raw in activeParticipantsRaw)
+        foreach (var participant in response.InactiveParticipantIds)
         {
-            if (Guid.TryParse(raw.ToString(), out var parsed))
-                activeParticipants.Add(parsed);
-        }    
-        
-        foreach (var participant in participants)
-        {
-            if (!activeParticipants.Contains(participant))
-            {
-                await Clients.Group(SignalRGroups.UserGroup(participant))
-                    .ReceiveNotification(message);
-            }
+            await Clients.Group(SignalRGroups.UserGroup(participant))
+                .ReceiveNotification(response.Message);
+
         }
-        
-        // maybe make it async 
+       
+        // TODO: maybe make it async 
 
         // var tasks = participants
         // .Where(p => !activeParticipants.Contains(p))
@@ -176,29 +147,39 @@ public class ChatHub : Hub<IChatClient>
 
         _logger.LogInformation(
             "Sent {Count} notifications for message {MessageId} in chat {ChatId}",
-            notificationsSent,
-            message.Id,
-            message.ChatId
+            response.InactiveParticipantIds.Count,
+            response.Message.Id,
+            response.Message.ChatId
         );
     }
     
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var userId = GetUserId();
-        var redis = _redis.GetDatabase();
+        var userId = TryGetUserId();
 
-        if (Context.Items.TryGetValue("OpenChats", out var chatsObj))
+        if (userId is null)
         {
-            var openChats = chatsObj as HashSet<Guid>;
-            if (openChats != null)
-            {
-                foreach (var chatId in openChats)
-                {
-                    await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
+            await base.OnDisconnectedAsync(exception);
+            return;
+        }
+        
+        if (userId != null)
+        {
+            var redis = _redis.GetDatabase();
 
-                    await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
-                        .UserLeft(userId);
+            if (Context.Items.TryGetValue("OpenChats", out var chatsObj))
+            {
+                var openChats = chatsObj as HashSet<Guid>;
+                if (openChats != null)
+                {
+                    foreach (var chatId in openChats)
+                    {
+                        await redis.SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
+
+                        await Clients.OthersInGroup(SignalRGroups.ChatGroup(chatId))
+                            .UserLeft((Guid)userId);
+                    }
                 }
             }
         }
@@ -211,7 +192,13 @@ public class ChatHub : Hub<IChatClient>
 
     private Guid GetUserId()
     {
-        var claim = (Context.User?.FindFirst("sub")?.Value) ?? throw new HubException("Not authenticated");
-        return Guid.Parse(claim);
+        var id = TryGetUserId();
+        return id ?? throw new HubException("Unauthorized");
+    }
+
+    private Guid? TryGetUserId()
+    {
+        var claim = Context.User?.FindFirst("sub")?.Value;
+        return Guid.TryParse(claim, out var result) ? result : null;
     }
 }

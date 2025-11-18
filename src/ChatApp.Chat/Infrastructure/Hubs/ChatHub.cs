@@ -1,25 +1,25 @@
+using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Domain;
 using ChatApp.Chat.Features.Chat.CloseChat;
 using ChatApp.Chat.Features.Chat.OpenChat;
 using ChatApp.Chat.Features.Chat.SendMessage;
-using ChatApp.Chat.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Chat.Infrastructure.Hubs;
 
 // TODO: make this file less bullshit
-// TODO: cancellation tokens
 // TODO: exception handlers
 // TODO: handle multiple devices connection
 // TODO: functional extensions
+// TODO: dtos
 
-public interface IChatClient // TODO: move this interface somewhere else
+public interface IChatClient // TODO: move this interface somewhere else later
 {
-    public Task ReceiveMessage(Message message);
+    public Task ReceiveMessage(MessageDto message);
     public Task ReceiveAdminMessage(Message message);
     public Task ReceiveSystemMessage(string message);
-    public Task ReceiveNotification(Message message); // TODO: replace message with notification
+    public Task ReceiveNotification(Message message);  
     public Task UserJoined(Guid userId); // TODO: that will be for real join chat operation now on
     public Task UserLeft(Guid userId);
 }
@@ -28,20 +28,17 @@ public interface IChatClient // TODO: move this interface somewhere else
 [Authorize]
 public class ChatHub : Hub<IChatClient>
 {
-    private readonly ChatDbContext _dbContext;
     private readonly ILogger<ChatHub> _logger;
     private readonly SendMessageHandler _sendMessageHandler;
     private readonly OpenChatHandler _openChatHandler;
     private readonly CloseChatHandler _closeChatHandler;
 
     public ChatHub(
-        ChatDbContext dbContext,
         ILogger<ChatHub> logger,
         SendMessageHandler sendMessageHandler,
         OpenChatHandler openChatHandler,
         CloseChatHandler closeChatHandler)
     {
-        _dbContext = dbContext;
         _logger = logger;
         _sendMessageHandler = sendMessageHandler;
         _openChatHandler = openChatHandler;
@@ -104,7 +101,14 @@ public class ChatHub : Hub<IChatClient>
 
         // sending message to active participants 
         await Clients.Group(SignalRGroups.ChatGroup(chatId))
-            .ReceiveMessage(response.Message);
+            .ReceiveMessage(new MessageDto(
+                response.Message.Id,
+                response.Message.ChatId,
+                response.Message.ParticipantSenderId,
+                response.Message.Type,
+                response.Message.Content,
+                response.Message.SentAt
+            ));
 
         _logger.LogInformation(
             "Message {MessageId} sent to active users in chat {ChatId}",

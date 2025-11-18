@@ -46,7 +46,14 @@ public class SendMessageHandler
             }
         }
 
-        var message = new Message() // TODO: validation
+        var validationResult = new SendMessageValidator().Validate(request); // TODO: inject
+
+        if (!validationResult)
+        {
+            throw new Exception("Validation failed");
+        }
+
+        var message = new Message() 
         {
             ParticipantSenderId = request.SenderId,
             ChatId = request.ChatId,

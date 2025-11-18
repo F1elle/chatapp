@@ -1,5 +1,4 @@
 using ChatApp.Chat.Contracts;
-using ChatApp.Chat.Domain;
 using ChatApp.Chat.Features.Chat.CloseChat;
 using ChatApp.Chat.Features.Chat.OpenChat;
 using ChatApp.Chat.Features.Chat.SendMessage;
@@ -13,17 +12,6 @@ namespace ChatApp.Chat.Infrastructure.Hubs;
 // TODO: handle multiple devices connection
 // TODO: functional extensions
 // TODO: dtos
-
-public interface IChatClient // TODO: move this interface somewhere else later
-{
-    public Task ReceiveMessage(MessageDto message);
-    public Task ReceiveAdminMessage(Message message);
-    public Task ReceiveSystemMessage(string message);
-    public Task ReceiveNotification(Message message);  
-    public Task UserJoined(Guid userId); // TODO: that will be for real join chat operation now on
-    public Task UserLeft(Guid userId);
-}
-
 
 [Authorize]
 public class ChatHub : Hub<IChatClient>

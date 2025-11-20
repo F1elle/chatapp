@@ -9,6 +9,7 @@ using ChatApp.User.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RabbitMQ.Client;
 using Rebus.Config;
 using Rebus.Retry.Simple;
 
@@ -87,5 +88,27 @@ public static class ConfigureServices
                 o.SetNumberOfWorkers(1);
                 o.SetMaxParallelism(1);
             }));
+
+        builder.Services.AddSingleton<IConnection>(sp =>
+            {
+                var factory = new ConnectionFactory
+                {
+                    Uri = new Uri(rabbitMqOptions!.ConnectionString)
+                };
+                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+            });
+
+        builder.Services.AddHealthChecks()
+            .AddNpgSql(
+                connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+                name: "UserDbContext",
+                timeout: TimeSpan.FromSeconds(5),
+                tags: new[] { "db", "postgresql" }
+            )
+            .AddRabbitMQ(
+                name: "RabbitMQ",
+                timeout: TimeSpan.FromSeconds(5),
+                tags: new[] { "messaging", "rabbitmq" }
+            );
     }
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Tasks;
 using ChatApp.Auth.Common.Middleware;
 using ChatApp.Auth.Features.SignIn;
 using ChatApp.Auth.Features.SignUp;
@@ -9,8 +10,10 @@ using ChatApp.Auth.Infrastructure.Messaging;
 using ChatApp.Auth.Infrastructure.Security;
 using ChatApp.Common.Infrastructure.Messaging.Events;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RabbitMQ.Client;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 
@@ -18,7 +21,7 @@ namespace ChatApp.Auth;
 
 public static class ConfigureServices
 {
-    public static void ConfigureAppServices(this WebApplicationBuilder builder)
+    public static async Task ConfigureAppServices(this WebApplicationBuilder builder)
     {
 
         builder.Services.AddProblemDetails(configure =>
@@ -98,5 +101,28 @@ public static class ConfigureServices
                 o.SetMaxParallelism(1);
                 o.SetNumberOfWorkers(1);
             }));
+
+
+        builder.Services.AddSingleton<IConnection>(sp =>
+            {
+                var factory = new ConnectionFactory
+                {
+                    Uri = new Uri(rabbitMqOptions!.ConnectionString)
+                };
+                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+            });
+
+        builder.Services.AddHealthChecks()
+            .AddNpgSql(
+                connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+                name: "AuthDbContext",
+                timeout: TimeSpan.FromSeconds(5),
+                tags: new[] { "db", "postgresql" }
+            )
+            .AddRabbitMQ(
+                name: "RabbitMQ",
+                timeout: TimeSpan.FromSeconds(5),
+                tags: new[] { "messaging", "rabbitmq" }
+            );
     }
 }

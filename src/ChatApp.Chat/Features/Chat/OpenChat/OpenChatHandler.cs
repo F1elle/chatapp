@@ -1,4 +1,5 @@
 using ChatApp.Chat.Features.Chat.Abstractions;
+using CSharpFunctionalExtensions;
 
 namespace ChatApp.Chat.Features.Chat.OpenChat;
 
@@ -14,7 +15,7 @@ public class OpenChatHandler
         _chatPresence = chatPresence;
     }
 
-    public async Task<OpenChatResponse> Handle(OpenChatRequest request, CancellationToken ct)
+    public async Task<Result> Handle(OpenChatRequest request, CancellationToken ct)
     {
         var hasAccess = await _chatAccess.CanAccessChatAsync(
             request.UserId,
@@ -22,12 +23,12 @@ public class OpenChatHandler
             ct);
         
         if (!hasAccess)
-            return new OpenChatResponse(false);
+            return Result.Failure("Access denied");
 
         await _chatPresence.MarkActiveAsync(request.ChatId, request.UserId, ct);
 
         // TODO: maybe return active users
 
-        return new OpenChatResponse(true);
+        return Result.Success();
     }
 }

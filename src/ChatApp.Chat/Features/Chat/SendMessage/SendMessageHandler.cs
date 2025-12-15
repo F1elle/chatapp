@@ -1,6 +1,7 @@
 using ChatApp.Chat.Domain;
 using ChatApp.Chat.Features.Chat.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
+using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.Chat.SendMessage;
@@ -20,13 +21,13 @@ public class SendMessageHandler
         _accessService = chatAccessService;
     }
     
-    public async Task<SendMessageResponse> Handle(SendMessageRequest request, CancellationToken ct) // TODO: Result<Message>
+    public async Task<Result<SendMessageResponse>> Handle(SendMessageRequest request, CancellationToken ct) // TODO: Result<Message>
     {
         var hasAccess = await _accessService.CanAccessChatAsync(request.SenderId, request.ChatId, ct);       
 
         if (!hasAccess)
         {
-            throw new Exception("Access denied");
+            return Result.Failure<SendMessageResponse>("Access denied");
         }
 
         // defining inactive users
@@ -50,7 +51,7 @@ public class SendMessageHandler
 
         if (!validationResult)
         {
-            throw new Exception("Validation failed");
+            return Result.Failure<SendMessageResponse>("Validation failed");
         }
 
         var message = new Message() 
@@ -64,6 +65,6 @@ public class SendMessageHandler
         _dbContext.Add(message);
         await _dbContext.SaveChangesAsync(ct);
 
-        return new (message, inactiveParticipantIds);
+        return new SendMessageResponse(message, inactiveParticipantIds);
     }
 }

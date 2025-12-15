@@ -1,5 +1,4 @@
 using System.Text;
-using System.Threading.Tasks;
 using ChatApp.Auth.Common.Middleware;
 using ChatApp.Auth.Features.SignIn;
 using ChatApp.Auth.Features.SignUp;
@@ -10,7 +9,6 @@ using ChatApp.Auth.Infrastructure.Messaging;
 using ChatApp.Auth.Infrastructure.Security;
 using ChatApp.Common.Infrastructure.Messaging.Events;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
@@ -114,7 +112,7 @@ public static class ConfigureServices
 
         builder.Services.AddHealthChecks()
             .AddNpgSql(
-                connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+                connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!, // TODO: remove !
                 name: "AuthDbContext",
                 timeout: TimeSpan.FromSeconds(5),
                 tags: new[] { "db", "postgresql" }

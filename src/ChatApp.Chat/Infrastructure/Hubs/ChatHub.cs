@@ -50,8 +50,8 @@ public class ChatHub : Hub<IChatClient>
 
         var response = await _openChatHandler.Handle(new OpenChatRequest(chatId, userId), ct);
 
-        if (!response.HasAccess)
-            throw new HubException("Access denied");
+        if (!response.IsSuccess)
+            throw new HubException(response.Error);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
 
@@ -87,27 +87,33 @@ public class ChatHub : Hub<IChatClient>
 
         var response = await _sendMessageHandler.Handle(new SendMessageRequest(senderId, chatId, messageContent), ct); 
 
+        if (!response.IsSuccess)
+            throw new HubException(response.Error);
+
+        var message = response.Value.Message;
+        var inactiveParticipantIds = response.Value.InactiveParticipantIds;
+
         // sending message to active participants 
         await Clients.Group(SignalRGroups.ChatGroup(chatId))
             .ReceiveMessage(new MessageDto(
-                response.Message.Id,
-                response.Message.ChatId,
-                response.Message.ParticipantSenderId,
-                response.Message.Type,
-                response.Message.Content,
-                response.Message.SentAt
+                message.Id,
+                message.ChatId,
+                message.ParticipantSenderId,
+                message.Type,
+                message.Content,
+                message.SentAt
             ));
 
         _logger.LogInformation(
             "Message {MessageId} sent to active users in chat {ChatId}",
-            response.Message.Id,
-            response.Message.ChatId
+            message.Id,
+            message.ChatId
         );
 
-        foreach (var participant in response.InactiveParticipantIds)
+        foreach (var participant in inactiveParticipantIds)
         {
             await Clients.Group(SignalRGroups.UserGroup(participant))
-                .ReceiveNotification(response.Message);
+                .ReceiveNotification(message);
         }
        
         // TODO: maybe make it async 
@@ -120,9 +126,9 @@ public class ChatHub : Hub<IChatClient>
 
         _logger.LogInformation(
             "Sent {Count} notifications for message {MessageId} in chat {ChatId}",
-            response.InactiveParticipantIds.Count,
-            response.Message.Id,
-            response.Message.ChatId
+            inactiveParticipantIds.Count,
+            message.Id,
+            message.ChatId
         );
     }
     

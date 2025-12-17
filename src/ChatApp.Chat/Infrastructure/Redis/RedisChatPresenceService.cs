@@ -1,5 +1,5 @@
 using System.Data.Common;
-using ChatApp.Chat.Features.Chat.Abstractions;
+using ChatApp.Chat.Features.Abstractions;
 using StackExchange.Redis;
 
 namespace ChatApp.Chat.Infrastructure.Redis;

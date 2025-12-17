@@ -1,7 +1,7 @@
 using ChatApp.Chat.Contracts;
-using ChatApp.Chat.Features.Chat.CloseChat;
-using ChatApp.Chat.Features.Chat.OpenChat;
-using ChatApp.Chat.Features.Chat.SendMessage;
+using ChatApp.Chat.Features.CloseChat;
+using ChatApp.Chat.Features.OpenChat;
+using ChatApp.Chat.Features.SendMessage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 

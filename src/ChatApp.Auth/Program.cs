@@ -2,7 +2,7 @@ using ChatApp.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.ConfigureAppServices();
+await builder.ConfigureAppServices();
 
 var app = builder.Build();
 

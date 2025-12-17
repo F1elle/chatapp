@@ -1,3 +1,4 @@
+using ChatApp.Auth.Common.Abstractions;
 using ChatApp.Auth.Domain;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.TokenRefresh;
 
-public class TokenRefreshHandler
+public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRefreshResponse>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly TokenProvider _tokenProvider;

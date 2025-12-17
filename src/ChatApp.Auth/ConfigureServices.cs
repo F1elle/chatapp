@@ -1,9 +1,6 @@
 using System.Text;
+using ChatApp.Auth.Common.Extensions;
 using ChatApp.Auth.Common.Middleware;
-using ChatApp.Auth.Features.SignIn;
-using ChatApp.Auth.Features.SignUp;
-using ChatApp.Auth.Features.TokenRefresh;
-using ChatApp.Auth.Features.TokenRevoke;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Messaging;
 using ChatApp.Auth.Infrastructure.Security;
@@ -76,10 +73,8 @@ public static class ConfigureServices
 
         builder.Services.AddSingleton<TokenProvider>();
         builder.Services.AddSingleton<PasswordHasher>();
-        builder.Services.AddScoped<SignInHandler>();
-        builder.Services.AddScoped<SignUpHandler>();
-        builder.Services.AddScoped<TokenRefreshHandler>();
-        builder.Services.AddScoped<TokenRevokeHandler>();
+
+        builder.Services.AddHandlers();
 
 
         var rabbitMqOptions = builder.Configuration

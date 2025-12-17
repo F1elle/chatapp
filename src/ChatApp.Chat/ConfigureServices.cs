@@ -1,4 +1,5 @@
 using System.Text;
+using ChatApp.Auth.Common.Extensions;
 using ChatApp.Chat.Common.Middleware;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Security;
@@ -58,6 +59,7 @@ public static class ConfigureServices
         builder.Services.AddHttpContextAccessor();
 
         // TODO: register my services here
+        builder.Services.AddHandlers();
 
         // TODO: left here
 

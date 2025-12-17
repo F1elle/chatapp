@@ -1,7 +1,6 @@
 using System.Text;
+using ChatApp.User.Common.Extensions;
 using ChatApp.User.Common.Middleware;
-using ChatApp.User.Features.UserProfile.CreateUserProfile;
-using ChatApp.User.Features.UserProfile.GetUserProfile;
 using ChatApp.User.Infrastructure.Data;
 using ChatApp.User.Infrastructure.Messaging;
 using ChatApp.User.Infrastructure.Messaging.Handlers;
@@ -67,8 +66,7 @@ public static class ConfigureServices
 
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddScoped<CreateUserProfileHandler>();
-        builder.Services.AddScoped<GetUserProfileHandler>();
+        builder.Services.AddHandlers();
 
         var rabbitMqOptions = builder.Configuration
             .GetSection(RabbitMqOptions.SectionName)

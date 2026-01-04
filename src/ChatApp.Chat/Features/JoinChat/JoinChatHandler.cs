@@ -24,7 +24,7 @@ public class JoinChatHandler : IHandler<JoinChatRequest, Result<JoinChatResponse
         };
 
         _dbContext.Add(chatParticipant);
-        await _dbContext.AddAsync(ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return new JoinChatResponse();
     }

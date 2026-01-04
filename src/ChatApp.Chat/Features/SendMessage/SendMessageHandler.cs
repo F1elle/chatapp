@@ -22,7 +22,7 @@ public class SendMessageHandler : IHandler<SendMessageRequest, Result<SendMessag
         _accessService = chatAccessService;
     }
     
-    public async Task<Result<SendMessageResponse>> Handle(SendMessageRequest request, CancellationToken ct) // TODO: Result<Message>
+    public async Task<Result<SendMessageResponse>> Handle(SendMessageRequest request, CancellationToken ct) 
     {
         var hasAccess = await _accessService.CanAccessChatAsync(request.SenderId, request.ChatId, ct);       
 
@@ -39,14 +39,7 @@ public class SendMessageHandler : IHandler<SendMessageRequest, Result<SendMessag
 
         var activeParticipants = await _presenceService.GetActiveParticipantsAsync(request.ChatId, ct);
         
-        var inactiveParticipantIds = new List<Guid>();
-        foreach(var participant in participants)
-        {
-            if (!activeParticipants.Contains(participant))
-            {
-                inactiveParticipantIds.Add(participant);
-            }
-        }
+        var inactiveParticipantIds = participants.Except(activeParticipants).ToList();
 
         var validationResult = new SendMessageValidator().Validate(request); // TODO: inject
 

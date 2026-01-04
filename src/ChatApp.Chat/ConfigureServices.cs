@@ -1,11 +1,14 @@
 using System.Text;
 using ChatApp.Auth.Common.Extensions;
 using ChatApp.Chat.Common.Middleware;
+using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Chat.Infrastructure.Redis;
 using ChatApp.Chat.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 namespace ChatApp.Chat;
 
@@ -59,6 +62,14 @@ public static class ConfigureServices
         builder.Services.AddHttpContextAccessor();
 
         // TODO: register my services here
+
+        builder.Services.AddSingleton<IConnectionMultiplexer>(
+            ConnectionMultiplexer.Connect(
+                builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped<IChatPresenceService, RedisChatPresenceService>();
+        builder.Services.AddScoped<IChatAccessService, ChatAccessService>();
+
         builder.Services.AddHandlers();
 
         // TODO: left here

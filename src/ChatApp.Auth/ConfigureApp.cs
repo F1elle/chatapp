@@ -11,6 +11,8 @@ public static class ConfigureApp
     public static async Task Configure(this WebApplication app)
     {
         app.UseExceptionHandler();
+
+        app.UseCors();
         
         app.UseAuthentication();
         app.UseAuthorization();

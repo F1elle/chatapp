@@ -1,25 +1,25 @@
 using System.Reflection;
 using ChatApp.Chat.Common.Abstractions;
 
-namespace ChatApp.Auth.Common.Extensions;
+namespace ChatApp.Chat.Common.Extensions;
 
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();
-        
+
         var handlerTypes = assembly.GetTypes()
-            .Where(t => t.Name.EndsWith("Handler") && 
-                   !t.IsAbstract && 
+            .Where(t => t.Name.EndsWith("Handler") &&
+                   !t.IsAbstract &&
                    !t.IsInterface);
 
         foreach (var handlerType in handlerTypes)
         {
             var interfaces = handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType && 
+                .Where(i => i.IsGenericType &&
                        i.GetGenericTypeDefinition() == typeof(IHandler<,>));
-            
+
             foreach (var @interface in interfaces)
             {
                 services.AddScoped(@interface, handlerType);

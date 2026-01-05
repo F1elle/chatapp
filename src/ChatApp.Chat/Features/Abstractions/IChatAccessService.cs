@@ -1,6 +1,6 @@
 namespace ChatApp.Chat.Features.Abstractions;
 
-public interface IChatAccessService // TODO: implement it some day)
+public interface IChatAccessService 
 {
-    Task<bool> CanAccessChatAsync(Guid userId, Guid chatId, CancellationToken ct);
+    Task<Guid?> GetParticipantIdAsync(Guid userId, Guid chatId, CancellationToken ct);
 }

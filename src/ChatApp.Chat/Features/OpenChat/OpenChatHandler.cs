@@ -18,18 +18,18 @@ public class OpenChatHandler : IHandler<OpenChatRequest, Result<OpenChatResponse
 
     public async Task<Result<OpenChatResponse>> Handle(OpenChatRequest request, CancellationToken ct)
     {
-        var hasAccess = await _chatAccess.CanAccessChatAsync(
+        var participantId = await _chatAccess.GetParticipantIdAsync(
             request.UserId,
             request.ChatId,
             ct);
         
-        if (!hasAccess)
+        if (participantId == null)
             return Result.Failure<OpenChatResponse>("Access denied");
 
-        await _chatPresence.MarkActiveAsync(request.ChatId, request.UserId, ct);
+        await _chatPresence.MarkActiveAsync(request.ChatId, (Guid)participantId, ct);
 
         // TODO: maybe return active users
 
-        return new OpenChatResponse();
+        return new OpenChatResponse((Guid)participantId);
     }
 }

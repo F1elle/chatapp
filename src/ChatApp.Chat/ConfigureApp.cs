@@ -12,6 +12,8 @@ public static class ConfigureApp
     {
         app.UseExceptionHandler();
 
+        app.UseCors();
+
         app.UseAuthentication();
         app.UseAuthorization();
 

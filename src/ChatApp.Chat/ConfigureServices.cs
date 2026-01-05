@@ -1,5 +1,5 @@
 using System.Text;
-using ChatApp.Auth.Common.Extensions;
+using ChatApp.Chat.Common.Extensions;
 using ChatApp.Chat.Common.Middleware;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
@@ -30,6 +30,17 @@ public static class ConfigureServices
 
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.WithOrigins("http://localhost:3000") // TODO: remove hardcoded
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                     {
@@ -43,6 +54,22 @@ public static class ConfigureServices
                             ValidateIssuerSigningKey = true,
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.Secret))
                         };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {
+                                var accessToken = context.Request.Query["access_token"]; // TODO: remove hardcoded
+
+                                var path = context.HttpContext.Request.Path;
+                                if (!string.IsNullOrEmpty(accessToken) && 
+                                    path.StartsWithSegments("/chat/hub")) // TODO: remove hardcoded
+                                {
+                                    context.Token = accessToken;
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
+
                     });
 
         builder.Services.AddAuthorization();

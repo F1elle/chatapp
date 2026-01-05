@@ -44,11 +44,11 @@ public class ChatHub : Hub<IChatClient>
         await base.OnConnectedAsync();
     }
 
-    public async Task OpenChat(Guid chatId, CancellationToken ct)
+    public async Task<Guid> OpenChat(Guid chatId)
     {
         var userId = GetUserId();
 
-        var response = await _openChatHandler.Handle(new OpenChatRequest(chatId, userId), ct);
+        var response = await _openChatHandler.Handle(new OpenChatRequest(chatId, userId), Context.ConnectionAborted);
 
         if (!response.IsSuccess)
             throw new HubException(response.Error);
@@ -62,13 +62,15 @@ public class ChatHub : Hub<IChatClient>
             userId,
             chatId
         );
+
+        return response.Value.ParticipantId;
     }
 
-    public async Task LeaveChat(Guid chatId, CancellationToken ct)
+    public async Task LeaveChat(Guid chatId)
     {
         var userId = GetUserId();
 
-        await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId), ct);
+        await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId), Context.ConnectionAborted);
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
 
@@ -81,14 +83,19 @@ public class ChatHub : Hub<IChatClient>
         );
     }
 
-    public async Task SendMessage(string messageContent, Guid chatId, CancellationToken ct) // make SendMessageRequest
+    public async Task SendMessage(string messageContent, Guid chatId) // make SendMessageRequest
     {
         var senderId = GetUserId();
 
-        var response = await _sendMessageHandler.Handle(new SendMessageRequest(senderId, chatId, messageContent), ct); 
+        _logger.LogInformation("User with Id: {Id} is sending a message", senderId);
+
+        var response = await _sendMessageHandler.Handle(new SendMessageRequest(senderId, chatId, messageContent), Context.ConnectionAborted); 
 
         if (!response.IsSuccess)
+        {
+            _logger.LogError("Error occured during sending a message: {Error}", response.Error);
             throw new HubException(response.Error);
+        }
 
         var message = response.Value.Message;
         var inactiveParticipantIds = response.Value.InactiveParticipantIds;
@@ -183,12 +190,14 @@ public class ChatHub : Hub<IChatClient>
     private Guid GetUserId()
     {
         var id = TryGetUserId();
+        _logger.LogInformation("Veryfing user {Id} ID", id);
         return id ?? throw new HubException("Unauthorized");
     }
 
     private Guid? TryGetUserId()
     {
-        var claim = Context.User?.FindFirst("sub")?.Value;
+        var claim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                ?? Context.User?.FindFirst("sub")?.Value;
         return Guid.TryParse(claim, out var result) ? result : null;
     }
 }

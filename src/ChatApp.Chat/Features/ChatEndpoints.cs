@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using ChatApp.Chat.Common.Extensions;
-using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Features.CreateChat;
+using ChatApp.Chat.Features.GetChatMessages;
 using ChatApp.Chat.Features.GetUserChats;
 using ChatApp.Chat.Features.JoinChat;
 using ChatApp.Chat.Infrastructure.Hubs;
@@ -33,6 +33,12 @@ public static class ChatEndpoints
 
         group.MapGet("/list", GetUserChatsRoute)
             .WithName("GetUserChats")
+            .WithSummary("Returns paged chats")
+            .RequireAuthorization();
+        
+        group.MapGet("/{chatId}/messages", GetChatMessagesRoute)
+            .WithName("GetChatMessages")
+            .WithSummary("Returns paged messages from the chat")
             .RequireAuthorization();
 
         return app;
@@ -83,5 +89,26 @@ public static class ChatEndpoints
         return result.IsSuccess
             ? Results.Ok(result.Value)
             : Results.BadRequest(new { error = result.Error });
+    }
+
+    private static async Task<IResult> GetChatMessagesRoute(
+        [FromRoute] Guid chatId,
+        [FromQuery] DateTime? cursor,
+        [FromQuery] int pageSize,
+        GetChatMessagesHandler handler,
+        ClaimsPrincipal claims,
+        CancellationToken ct)
+    {
+        var userId = claims.GetUserId();
+
+        if (userId == null)
+            return Results.Unauthorized();
+
+        var request = new GetChatMessagesRequest(chatId, userId.Value, cursor, pageSize);
+        var result = await handler.Handle(request, ct);
+
+        return result.IsSuccess
+            ? Results.Ok(result.Value)
+            : Results.BadRequest(new {error = result.Error});
     }
 }

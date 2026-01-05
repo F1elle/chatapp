@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChatApp.Chat.Infrastructure.Data.Configurations;
 
-public class UserAuthConfiguration : IEntityTypeConfiguration<Message>
+public class MessageConfiguration : IEntityTypeConfiguration<Message>
 {
     public void Configure(EntityTypeBuilder<Message> builder)
     {
@@ -32,5 +32,6 @@ public class UserAuthConfiguration : IEntityTypeConfiguration<Message>
         builder.Ignore(m => m.IsEdited);
         builder.Ignore(m => m.IsRead);
         builder.Ignore(m => m.RepliesCount);
+        builder.Ignore(m => m.SeenCount);
     }
 }

@@ -1,9 +1,10 @@
+using ChatApp.User.Common.Abstractions;
 using ChatApp.User.Infrastructure.Data;
 using CSharpFunctionalExtensions;
 
-namespace ChatApp.User.Features.UserProfile.CreateUserProfile;
+namespace ChatApp.User.Features.CreateUserProfile;
 
-public class CreateUserProfileHandler
+public class CreateUserProfileHandler: IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse>>
 {
     private readonly UserDbContext _dbContext;
 
@@ -13,7 +14,7 @@ public class CreateUserProfileHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Result> Handle(
+    public async Task<Result<CreateUserProfileResponse>> Handle(
         CreateUserProfileRequest request,
         CancellationToken ct)
     {
@@ -28,6 +29,6 @@ public class CreateUserProfileHandler
 
         await _dbContext.SaveChangesAsync(ct);
 
-        return Result.Success();
+        return new CreateUserProfileResponse();
     }
 }

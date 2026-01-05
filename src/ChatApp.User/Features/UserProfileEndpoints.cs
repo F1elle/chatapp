@@ -1,5 +1,4 @@
-using ChatApp.User.Features.UserProfile.GetUserProfile;
-using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
+using ChatApp.User.Features.GetUserProfile;
 
 namespace ChatApp.User.Features;
 

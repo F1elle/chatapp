@@ -5,3 +5,5 @@ public sealed record SignUpRequest(
     string Password,
     string? DisplayName
 );
+
+public sealed record SignUpResponse(Guid UserId);

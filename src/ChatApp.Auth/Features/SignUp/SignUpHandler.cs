@@ -5,10 +5,11 @@ using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Rebus.Bus;
 using ChatApp.Common.Infrastructure.Messaging.Events;
+using ChatApp.Auth.Common.Abstractions;
 
 namespace ChatApp.Auth.Features.SignUp;
 
-public class SignUpHandler
+public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly PasswordHasher _passwordHasher;
@@ -24,7 +25,7 @@ public class SignUpHandler
         _bus = bus;
     }
 
-    public async Task<Result> Handle(
+    public async Task<Result<SignUpResponse>> Handle(
         SignUpRequest request,
         CancellationToken ct)
     {
@@ -33,7 +34,7 @@ public class SignUpHandler
         var existingUser = await userAuth.FirstOrDefaultAsync(ua => ua.Email == request.Email, ct);
 
         if (existingUser != null)
-            return Result.Failure("User with such email already exists");
+            return Result.Failure<SignUpResponse>("User with such email already exists");
 
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
@@ -55,6 +56,6 @@ public class SignUpHandler
             SignedUpAt: createdUserAuth.CreatedAt
         ));
 
-        return Result.Success();
+        return new SignUpResponse(createdUserAuth.Id);
     }
 }

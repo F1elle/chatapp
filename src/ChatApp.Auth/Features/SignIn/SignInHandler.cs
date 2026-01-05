@@ -1,3 +1,4 @@
+using ChatApp.Auth.Common.Abstractions;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
 using CSharpFunctionalExtensions;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.SignIn;
 
-public class SignInHandler
+public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly PasswordHasher _passwordHasher;

@@ -12,6 +12,8 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.HasKey(m => m.Id);
 
+        builder.HasIndex(m => new { m.ChatId, m.SentAt });
+
         builder.Property(m => m.SentAt)
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -23,15 +25,13 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.Property(m => m.AttachmentIds).HasColumnType("uuid[]");
 
-        builder.HasOne(m => m.ReplyToMessage)
-            .WithMany(m => m.Replies)
-            .HasForeignKey(m => m.ReplyToMessageId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
+        builder.HasOne(m => m.ParticipantSender)
+            .WithMany()
+            .HasForeignKey(m => m.ParticipantSenderId);
+
 
         builder.Ignore(m => m.IsEdited);
         builder.Ignore(m => m.IsRead);
-        builder.Ignore(m => m.RepliesCount);
         builder.Ignore(m => m.SeenCount);
     }
 }

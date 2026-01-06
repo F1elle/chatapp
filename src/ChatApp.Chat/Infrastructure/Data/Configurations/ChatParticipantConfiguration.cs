@@ -12,7 +12,7 @@ public class ChatParticipantConfiguration : IEntityTypeConfiguration<ChatPartici
 
         builder.HasKey(m => m.Id);
 
-        builder.HasIndex(cp => new { cp.ChatId, cp.UserId });
+        builder.HasIndex(cp => new { cp.ChatId, cp.UserId }).IsUnique();
 
         builder.Property(cp => cp.JoinedAt)
             .IsRequired()

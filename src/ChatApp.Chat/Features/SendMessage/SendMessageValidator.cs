@@ -21,7 +21,6 @@ public class SendMessageValidator // TODO: FluentValidation later
             MessageType.Text,
             MessageType.WithMediaAttachments,
             MessageType.System,
-            MessageType.WithFileAttachments
         };
 
         if (!allowedTypes.Contains(request.Type))

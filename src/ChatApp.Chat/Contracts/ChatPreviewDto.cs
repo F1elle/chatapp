@@ -6,8 +6,8 @@ public sealed record ChatPreviewDto(
     Guid Id,
     string? Name,
     ChatType Type,
+    DateTime CreatedAt,
     DateTime? LastMessageAt,
     string? LastMessageContent,
-    int UnreadCount,
-    string? LastMessageSenderName
+    ChatParticipantDto? LastMessageSender
 );

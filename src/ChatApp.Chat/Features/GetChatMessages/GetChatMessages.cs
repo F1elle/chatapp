@@ -1,4 +1,4 @@
-using ChatApp.Chat.Domain;
+using ChatApp.Chat.Contracts;
 
 namespace ChatApp.Chat.Features.GetChatMessages;
 
@@ -10,7 +10,7 @@ public sealed record GetChatMessagesRequest(
 );
 
 public sealed record GetChatMessagesResponse(
-    List<Message> Messages,
+    List<MessageDto> Messages,
     DateTime? NextCursor,
     bool HasMore
 );

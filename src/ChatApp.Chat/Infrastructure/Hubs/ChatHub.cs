@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Chat.Infrastructure.Hubs;
 
-// TODO: make this file less bullshit
 // TODO: exception handlers
 // TODO: handle multiple devices connection
 // TODO: functional extensions
@@ -102,14 +101,7 @@ public class ChatHub : Hub<IChatClient>
 
         // sending message to active participants 
         await Clients.Group(SignalRGroups.ChatGroup(chatId))
-            .ReceiveMessage(new MessageDto(
-                message.Id,
-                message.ChatId,
-                message.ParticipantSenderId,
-                message.Type,
-                message.Content,
-                message.SentAt
-            ));
+            .ReceiveMessage(message);
 
         _logger.LogInformation(
             "Message {MessageId} sent to active users in chat {ChatId}",

@@ -25,5 +25,15 @@ public class ChatConfiguration : IEntityTypeConfiguration<Domain.Chat>
             .WithOne()
             .HasForeignKey(cp => cp.ChatId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(c => c.Messages)
+            .WithOne()
+            .HasForeignKey(m => m.ChatId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(c => c.LastMessage)
+            .WithMany()
+            .HasForeignKey(c => c.LastMessageId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

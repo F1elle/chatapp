@@ -4,7 +4,7 @@ namespace ChatApp.Chat.Features.CreateChat;
 
 public sealed record CreateChatRequest(
     Guid CreatedBy,
-    string? Name,
+    string Name,
     List<Guid> ParticipantIds,
     ChatType Type
 );

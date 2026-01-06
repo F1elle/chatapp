@@ -1,4 +1,4 @@
-using ChatApp.Chat.Domain;
+using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Domain.Enums;
 
 namespace ChatApp.Chat.Features.SendMessage;
@@ -10,6 +10,6 @@ public sealed record SendMessageRequest(
     MessageType Type = MessageType.Text);
 
 public sealed record SendMessageResponse(
-    Message Message,
+    MessageDto Message,
     IReadOnlyCollection<Guid> InactiveParticipantIds
 );

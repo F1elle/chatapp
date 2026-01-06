@@ -20,7 +20,8 @@ public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserC
         CancellationToken ct)
     {
         var query = _dbContext.Chats
-            .Where(c => c.ChatParticipants.Any(cp => cp.UserId == request.UserId));
+            .Where(c => c.ChatParticipants.Any(cp => cp.UserId == request.UserId))
+            .AsNoTracking();
 
         if (request.Cursor.HasValue)
         {
@@ -31,14 +32,21 @@ public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserC
 
         var chats = await orderedQuery
             .Take(request.PageSize + 1)
-            .Select(c => new ChatPreviewDto( // TODO: fill all the fields
+            .Select(c => new ChatPreviewDto(
                 c.Id,
                 c.Name,
                 c.Type,
+                c.CreatedAt,
                 c.LastMessageAt,
-                null,
-                0,
-                null
+                c.LastMessage != null 
+                    ? c.LastMessage.Content ?? "No messages yet" 
+                    : "No messages yet",
+                c.LastMessage != null 
+                    ? new ChatParticipantDto(
+                        c.LastMessage.ParticipantSenderId,
+                        c.LastMessage.ParticipantSender.UserId
+                    )
+                    : null
             ))
             .ToListAsync(ct);
 

@@ -17,11 +17,7 @@ public class JoinChatHandler : IHandler<JoinChatRequest, Result<JoinChatResponse
 
     public async Task<Result<JoinChatResponse>> Handle(JoinChatRequest request, CancellationToken ct)
     {
-        ChatParticipant chatParticipant = new() 
-        {
-            UserId = request.UserId, 
-            ChatId = request.ChatId
-        };
+        ChatParticipant chatParticipant = new(request.UserId, request.ChatId);
 
         _dbContext.Add(chatParticipant);
         await _dbContext.SaveChangesAsync(ct);

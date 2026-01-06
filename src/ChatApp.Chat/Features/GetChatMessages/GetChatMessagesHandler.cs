@@ -1,4 +1,5 @@
 using ChatApp.Chat.Common.Abstractions;
+using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using CSharpFunctionalExtensions;
@@ -34,7 +35,9 @@ public class GetChatMessagesHandler : IHandler<GetChatMessagesRequest, Result<Ge
         }
 
         var query = _dbContext.Messages
-            .Where(m => m.ChatId == request.ChatId);
+            .Where(m => m.ChatId == request.ChatId)
+            .Include(m => m.ParticipantSender)
+            .AsNoTracking();
 
         if (request.Cursor.HasValue)
         {
@@ -45,7 +48,15 @@ public class GetChatMessagesHandler : IHandler<GetChatMessagesRequest, Result<Ge
 
         var messages = await orderedQuery
             .Take(request.PageSize + 1)
-            .ToListAsync();
+            .Select(m => new MessageDto(
+                m.Id,
+                m.ChatId,
+                new ChatParticipantDto(m.ParticipantSender.Id, m.ParticipantSender.UserId),
+                m.Type,
+                m.Content,
+                m.SentAt
+            ))
+            .ToListAsync(ct);
 
         var hasMore = messages.Count > request.PageSize;
 

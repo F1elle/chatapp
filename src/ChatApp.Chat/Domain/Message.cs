@@ -20,7 +20,7 @@ public class Message
 
 
     public bool IsEdited => EditedAt != null;
-    public bool IsRead => SeenByParticipants.Any();
+    public bool IsRead => SeenByParticipants.Count != 0;
     public int SeenCount => SeenByParticipants.Count;
 
 

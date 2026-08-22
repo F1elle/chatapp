@@ -3,10 +3,11 @@
 That's a showcase project. Real-time chatting app built with microservices and kinda VSA.
 
 
+### **THE README IS OUTDATED I'M LAZY THE COMMENT WILL BE REMOVED AS SOON AS I UPDATE THE README**
 
 ## Tools
 
-- .NET 9
+- .NET 10
 - ASP.NET Core
 - Entity Framework Core
 - SignalR

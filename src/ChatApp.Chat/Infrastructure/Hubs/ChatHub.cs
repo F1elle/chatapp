@@ -1,7 +1,7 @@
 using ChatApp.Chat.Contracts;
-using ChatApp.Chat.Features.CloseChat;
-using ChatApp.Chat.Features.OpenChat;
+using ChatApp.Chat.Features.ActivateChat;
 using ChatApp.Chat.Features.SendMessage;
+using ChatApp.Chat.Features.SuspendChat;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -17,19 +17,20 @@ public class ChatHub : Hub<IChatClient>
 {
     private readonly ILogger<ChatHub> _logger;
     private readonly SendMessageHandler _sendMessageHandler;
-    private readonly OpenChatHandler _openChatHandler;
-    private readonly CloseChatHandler _closeChatHandler;
+    private readonly ActivateChatHandler _activateChatHandler;
+    private readonly SuspendChatHandler _suspendChatHandler;
 
     public ChatHub(
         ILogger<ChatHub> logger,
         SendMessageHandler sendMessageHandler,
-        OpenChatHandler openChatHandler,
-        CloseChatHandler closeChatHandler)
+        ActivateChatHandler activateChatHandler,
+        SuspendChatHandler suspendChatHandler
+    )
     {
         _logger = logger;
         _sendMessageHandler = sendMessageHandler;
-        _openChatHandler = openChatHandler;
-        _closeChatHandler = closeChatHandler;
+        _activateChatHandler = activateChatHandler;
+        _suspendChatHandler = suspendChatHandler;
     }
 
     public override async Task OnConnectedAsync()
@@ -47,7 +48,10 @@ public class ChatHub : Hub<IChatClient>
     {
         var userId = GetUserId();
 
-        var response = await _openChatHandler.Handle(new OpenChatRequest(chatId, userId), Context.ConnectionAborted);
+        var response = await _activateChatHandler.Handle(
+            new ActivateChatRequest(chatId, userId),
+            Context.ConnectionAborted
+        );
 
         if (!response.IsSuccess)
             throw new HubException(response.Error);
@@ -69,7 +73,10 @@ public class ChatHub : Hub<IChatClient>
     {
         var userId = GetUserId();
 
-        await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId), Context.ConnectionAborted);
+        await _suspendChatHandler.Handle(
+            new SuspendChatRequest(chatId, userId),
+            Context.ConnectionAborted
+        );
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(chatId));
 
@@ -88,7 +95,10 @@ public class ChatHub : Hub<IChatClient>
 
         _logger.LogInformation("User with Id: {Id} is sending a message", senderId);
 
-        var response = await _sendMessageHandler.Handle(new SendMessageRequest(senderId, chatId, messageContent), Context.ConnectionAborted); 
+        var response = await _sendMessageHandler.Handle(
+            new SendMessageRequest(senderId, chatId, messageContent),
+            Context.ConnectionAborted
+        );
 
         if (!response.IsSuccess)
         {
@@ -99,9 +109,8 @@ public class ChatHub : Hub<IChatClient>
         var message = response.Value.Message;
         var inactiveParticipantIds = response.Value.InactiveParticipantIds;
 
-        // sending message to active participants 
-        await Clients.Group(SignalRGroups.ChatGroup(chatId))
-            .ReceiveMessage(message);
+        // sending message to active participants
+        await Clients.Group(SignalRGroups.ChatGroup(chatId)).ReceiveMessage(message);
 
         _logger.LogInformation(
             "Message {MessageId} sent to active users in chat {ChatId}",
@@ -111,17 +120,15 @@ public class ChatHub : Hub<IChatClient>
 
         foreach (var participant in inactiveParticipantIds)
         {
-            await Clients.Group(SignalRGroups.UserGroup(participant))
-                .ReceiveNotification(message);
+            await Clients.Group(SignalRGroups.UserGroup(participant)).ReceiveNotification(message);
         }
-       
-        // TODO: maybe make it async 
+
+        // TODO: maybe make it async
 
         // var tasks = participants
         // .Where(p => !activeParticipants.Contains(p))
         // .Select(p => Clients.Group(SignalRGroups.UserGroup(p)).ReceiveNotification(message));
         // await Task.WhenAll(tasks);
-
 
         _logger.LogInformation(
             "Sent {Count} notifications for message {MessageId} in chat {ChatId}",
@@ -130,7 +137,6 @@ public class ChatHub : Hub<IChatClient>
             message.ChatId
         );
     }
-    
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
@@ -146,14 +152,17 @@ public class ChatHub : Hub<IChatClient>
 
         foreach (var chatId in openChats)
         {
-            await _closeChatHandler.Handle(new CloseChatRequest(chatId, userId.Value), CancellationToken.None);
+            await _suspendChatHandler.Handle(
+                new SuspendChatRequest(chatId, userId.Value),
+                CancellationToken.None
+            );
         }
-        
+
         _logger.LogInformation("User {UserId} disconnected", userId);
 
         await base.OnDisconnectedAsync(exception);
     }
-    
+
     private void TrackOpenChat(Guid chatId)
     {
         if (!Context.Items.ContainsKey("OpenChats"))
@@ -164,8 +173,10 @@ public class ChatHub : Hub<IChatClient>
 
     private void UntrackOpenChat(Guid chatId)
     {
-        if (Context.Items.TryGetValue("OpenChats", out var value)
-            && value is HashSet<Guid> openChats)
+        if (
+            Context.Items.TryGetValue("OpenChats", out var value)
+            && value is HashSet<Guid> openChats
+        )
         {
             openChats.Remove(chatId);
         }
@@ -173,7 +184,8 @@ public class ChatHub : Hub<IChatClient>
 
     private HashSet<Guid> GetTrackedChats()
     {
-        return Context.Items.TryGetValue("OpenChats", out var value)
+        return
+            Context.Items.TryGetValue("OpenChats", out var value)
             && value is HashSet<Guid> trackedChats
             ? trackedChats
             : new HashSet<Guid>();
@@ -188,8 +200,9 @@ public class ChatHub : Hub<IChatClient>
 
     private Guid? TryGetUserId()
     {
-        var claim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
-                ?? Context.User?.FindFirst("sub")?.Value;
+        var claim =
+            Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? Context.User?.FindFirst("sub")?.Value;
         return Guid.TryParse(claim, out var result) ? result : null;
     }
 }

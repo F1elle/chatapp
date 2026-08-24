@@ -2,34 +2,37 @@ using ChatApp.Chat.Common.Abstractions;
 using ChatApp.Chat.Features.Abstractions;
 using CSharpFunctionalExtensions;
 
-namespace ChatApp.Chat.Features.OpenChat;
+namespace ChatApp.Chat.Features.ActivateChat;
 
-public class OpenChatHandler : IHandler<OpenChatRequest, Result<OpenChatResponse>>
+public class ActivateChatHandler : IHandler<ActivateChatRequest, Result<ActivateChatResponse>>
 {
     private readonly IChatAccessService _chatAccess;
     private readonly IChatPresenceService _chatPresence;
-    public OpenChatHandler(
-        IChatAccessService chatAccess,
-        IChatPresenceService chatPresence)
+
+    public ActivateChatHandler(IChatAccessService chatAccess, IChatPresenceService chatPresence)
     {
         _chatAccess = chatAccess;
         _chatPresence = chatPresence;
     }
 
-    public async Task<Result<OpenChatResponse>> Handle(OpenChatRequest request, CancellationToken ct)
+    public async Task<Result<ActivateChatResponse>> Handle(
+        ActivateChatRequest request,
+        CancellationToken ct
+    )
     {
         var participantId = await _chatAccess.GetParticipantIdAsync(
             request.UserId,
             request.ChatId,
-            ct);
-        
+            ct
+        );
+
         if (participantId == null)
-            return Result.Failure<OpenChatResponse>("Access denied");
+            return Result.Failure<ActivateChatResponse>("Access denied");
 
         await _chatPresence.MarkActiveAsync(request.ChatId, (Guid)participantId, ct);
 
         // TODO: maybe return active users
 
-        return new OpenChatResponse((Guid)participantId);
+        return new ActivateChatResponse((Guid)participantId);
     }
 }

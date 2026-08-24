@@ -13,34 +13,37 @@ public static class ConfigureApp
         app.UseExceptionHandler();
 
         app.UseCors();
-        
+
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapAuthEndpoints();
 
-        app.MapHealthChecks("/health", new HealthCheckOptions
-        {
-            ResponseWriter = async (context, report) =>
+        app.MapHealthChecks(
+            "/health",
+            new HealthCheckOptions
             {
-                context.Response.ContentType = "application/json";
-                var result = JsonSerializer.Serialize(new
+                ResponseWriter = async (context, report) =>
                 {
-                    status = report.Status.ToString(),
-                    results = report.Entries.Select(e => new
-                    {
-                        key = e.Key,
-                        status = e.Value.Status.ToString(),
-                        description = e.Value.Description
-                    })
-                });
-                await context.Response.WriteAsync(result);
+                    context.Response.ContentType = "application/json";
+                    var result = JsonSerializer.Serialize(
+                        new
+                        {
+                            status = report.Status.ToString(),
+                            results = report.Entries.Select(e => new
+                            {
+                                key = e.Key,
+                                status = e.Value.Status.ToString(),
+                                description = e.Value.Description,
+                            }),
+                        }
+                    );
+                    await context.Response.WriteAsync(result);
+                },
             }
-        });
+        );
 
         await app.MigrateDb();
-
-
     }
 
     private static async Task MigrateDb(this WebApplication app)

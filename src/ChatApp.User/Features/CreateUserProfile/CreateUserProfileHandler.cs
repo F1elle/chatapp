@@ -4,28 +4,31 @@ using CSharpFunctionalExtensions;
 
 namespace ChatApp.User.Features.CreateUserProfile;
 
-public class CreateUserProfileHandler: IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse>>
+public class CreateUserProfileHandler
+    : IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse>>
 {
     private readonly UserDbContext _dbContext;
 
-    public CreateUserProfileHandler(
-        UserDbContext dbContext)
+    public CreateUserProfileHandler(UserDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public async Task<Result<CreateUserProfileResponse>> Handle(
         CreateUserProfileRequest request,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        _dbContext.UserProfiles.Add(new Domain.UserProfile
-        {
-            Id = request.Id,
-            Email = request.Email,
-            DisplayName = request.DisplayName,
-            CreatedAt = request.CreatedAt,
-            UserTag = Guid.NewGuid().ToString()
-        });
+        _dbContext.UserProfiles.Add(
+            new Domain.UserProfile
+            {
+                Id = request.Id,
+                Email = request.Email,
+                DisplayName = request.DisplayName,
+                CreatedAt = request.CreatedAt,
+                UserTag = Guid.CreateVersion7().ToString(),
+            }
+        );
 
         await _dbContext.SaveChangesAsync(ct);
 

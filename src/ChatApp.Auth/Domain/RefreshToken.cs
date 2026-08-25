@@ -2,7 +2,7 @@ namespace ChatApp.Auth.Domain;
 
 public class RefreshToken
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     public Guid UserAuthId { get; set; }
     public string Token { get; set; } = string.Empty;
     public string? CreatedByIp { get; set; }
@@ -19,7 +19,7 @@ public class RefreshToken
 
     public RefreshToken(Guid userAuthId, string token, DateTime expiresAt, string? ipAddress)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.CreateVersion7();
         UserAuthId = userAuthId;
         Token = token;
         CreatedAt = DateTime.UtcNow;

@@ -2,12 +2,12 @@ namespace ChatApp.Chat.Domain;
 
 public class MessageSeen
 {
-    public Guid Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid MessageId { get; set; }
     public Guid ParticipantId { get; set; }
     public DateTime SeenAt { get; set; } = DateTime.UtcNow;
 
-    private MessageSeen() {}
+    private MessageSeen() { }
 
     public MessageSeen(Guid messageId, Guid participantId)
     {
@@ -16,4 +16,3 @@ public class MessageSeen
         SeenAt = DateTime.UtcNow;
     }
 }
-

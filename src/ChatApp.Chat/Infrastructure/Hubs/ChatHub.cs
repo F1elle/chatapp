@@ -1,4 +1,3 @@
-using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Features.ActivateChat;
 using ChatApp.Chat.Features.SendMessage;
 using ChatApp.Chat.Features.SuspendChat;

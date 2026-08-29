@@ -5,8 +5,8 @@ namespace ChatApp.Chat.Domain;
 public class Message
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
-    public ChatParticipant ParticipantSender { get; init; } = null!;
-    public required Guid ParticipantSenderId { get; init; }
+    public ChatParticipant Sender { get; init; } = null!;
+    public required Guid SenderId { get; init; }
     public required Guid ChatId { get; init; }
     public required DateTime SentAt { get; init; }
     public DateTime? EditedAt { get; set; } = null;
@@ -27,7 +27,7 @@ public class Message
     {
         return new Message()
         {
-            ParticipantSenderId = senderId,
+            SenderId = senderId,
             ChatId = chatId,
             SentAt = DateTime.UtcNow,
             Content = content,
@@ -44,7 +44,7 @@ public class Message
     {
         return new Message()
         {
-            ParticipantSenderId = senderId,
+            SenderId = senderId,
             ChatId = chatId,
             SentAt = DateTime.UtcNow,
             Content = content,
@@ -56,7 +56,7 @@ public class Message
     {
         return new Message()
         {
-            ParticipantSenderId = Guid.Empty, // TODO: maybe some predefined value
+            SenderId = Guid.Empty, // TODO: maybe some predefined value
             ChatId = chatId,
             SentAt = DateTime.UtcNow,
             Content = content,

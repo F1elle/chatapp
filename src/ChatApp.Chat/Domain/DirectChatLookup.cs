@@ -1,5 +1,6 @@
 namespace ChatApp.Chat.Domain;
 
+// Relation entity for direct chats
 public class DirectChatLookup
 {
     public Guid ChatId { get; init; }

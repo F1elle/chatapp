@@ -1,5 +1,6 @@
 namespace ChatApp.Chat.Domain;
 
+// Relation entity between user and chat
 public class ChatParticipant
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();

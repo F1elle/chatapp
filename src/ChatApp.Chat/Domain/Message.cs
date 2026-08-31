@@ -15,7 +15,7 @@ public class Message
 
     public List<Guid> AttachmentIds { get; init; } = [];
 
-    public List<MessageSeen> SeenByParticipants { get; set; } = [];
+    public List<MessageSeen> SeenByParticipants { get; set; } = []; // TODO: how to update real-time
 
     public bool IsEdited => EditedAt != null;
     public bool IsRead => SeenByParticipants.Count != 0;

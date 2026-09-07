@@ -1,6 +1,6 @@
-using ChatApp.Auth.Common.Abstractions;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,8 @@ public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
         PasswordHasher passwordHasher,
         TokenProvider tokenProvider,
         IHttpContextAccessor httpContextAccessor,
-        IOptions<JwtOptions> jwtOptions)
+        IOptions<JwtOptions> jwtOptions
+    )
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
@@ -31,8 +32,8 @@ public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
 
     public async Task<Result<SignInResponse>> Handle(SignInRequest request, CancellationToken ct)
     {
-        var user = await _dbContext.UserAuth
-            .Include(ua => ua.RefreshTokens)
+        var user = await _dbContext
+            .UserAuth.Include(ua => ua.RefreshTokens)
             .FirstOrDefaultAsync(ua => ua.Email == request.Email);
 
         if (user == null)

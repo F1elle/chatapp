@@ -1,7 +1,7 @@
-using ChatApp.Auth.Common.Abstractions;
 using ChatApp.Auth.Domain;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,7 +19,8 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
         AuthDbContext dbContext,
         TokenProvider tokenProvider,
         IHttpContextAccessor httpContextAccessor,
-        IOptions<JwtOptions> options)
+        IOptions<JwtOptions> options
+    )
     {
         _dbContext = dbContext;
         _tokenProvider = tokenProvider;
@@ -32,9 +33,12 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
         CancellationToken ct
     )
     {
-        var user = await _dbContext.UserAuth
-            .Include(ua => ua.RefreshTokens)
-            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == request.RefreshToken), ct);
+        var user = await _dbContext
+            .UserAuth.Include(ua => ua.RefreshTokens)
+            .FirstOrDefaultAsync(
+                u => u.RefreshTokens.Any(t => t.Token == request.RefreshToken),
+                ct
+            );
 
         if (user == null)
             return Result.Failure<TokenRefreshResponse>("Invalid refresh token");
@@ -63,18 +67,16 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
 
         await _dbContext.SaveChangesAsync(ct);
 
-        return Result.Success(new TokenRefreshResponse(
-            newAccessToken,
-            newRefreshToken
-        ));
+        return Result.Success(new TokenRefreshResponse(newAccessToken, newRefreshToken));
     }
 
     private void RevokeDescendantRefreshTokens(RefreshToken refreshToken, UserAuth userAuth)
     {
         if (!string.IsNullOrEmpty(refreshToken.ReplacedByToken))
         {
-            var childToken = userAuth.RefreshTokens
-                .FirstOrDefault(t => t.Token == refreshToken.ReplacedByToken);
+            var childToken = userAuth.RefreshTokens.FirstOrDefault(t =>
+                t.Token == refreshToken.ReplacedByToken
+            );
 
             if (childToken != null && childToken.IsActive)
             {

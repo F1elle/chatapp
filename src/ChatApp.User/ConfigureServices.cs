@@ -1,5 +1,6 @@
+using System.Reflection;
 using System.Text;
-using ChatApp.User.Common.Extensions;
+using ChatApp.Common.Extensions;
 using ChatApp.User.Common.Middleware;
 using ChatApp.User.Infrastructure.Data;
 using ChatApp.User.Infrastructure.Messaging;
@@ -22,14 +23,21 @@ public static class ConfigureServices
         {
             configure.CustomizeProblemDetails = context =>
             {
-                context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+                context.ProblemDetails.Extensions.TryAdd(
+                    "requestId",
+                    context.HttpContext.TraceIdentifier
+                );
             };
         });
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-        builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+        builder.Services.Configure<JwtOptions>(
+            builder.Configuration.GetSection(JwtOptions.SectionName)
+        );
+        builder.Services.Configure<RabbitMqOptions>(
+            builder.Configuration.GetSection(RabbitMqOptions.SectionName)
+        );
 
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
@@ -37,27 +45,34 @@ public static class ConfigureServices
         {
             options.AddDefaultPolicy(policy =>
             {
-                policy.WithOrigins("http://localhost:3000")
+                policy
+                    .WithOrigins("http://localhost:3000")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
             });
         });
 
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+        builder
+            .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(
+                JwtBearerDefaults.AuthenticationScheme,
+                options =>
+                {
+                    options.TokenValidationParameters = new()
                     {
-                        options.TokenValidationParameters = new()
-                        {
-                            ValidateIssuer = true,
-                            ValidIssuer = jwtOptions!.Issuer,
-                            ValidateAudience = true,
-                            ValidAudience = jwtOptions!.Audience,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.Secret))
-                        };
-                    });
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions!.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions!.Audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtOptions!.Secret)
+                        ),
+                    };
+                }
+            );
 
         builder.Services.AddAuthorization();
 
@@ -73,41 +88,47 @@ public static class ConfigureServices
                     );
                     npgsqlOptions.CommandTimeout(30);
                 }
-            ));
+            )
+        );
 
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddHandlers();
+        builder.Services.AddHandlers(Assembly.GetExecutingAssembly());
 
-        var rabbitMqOptions = builder.Configuration
-            .GetSection(RabbitMqOptions.SectionName)
+        var rabbitMqOptions = builder
+            .Configuration.GetSection(RabbitMqOptions.SectionName)
             .Get<RabbitMqOptions>();
 
         builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
 
-        builder.Services.AddRebus(configure => configure
-            .Transport(t => t.UseRabbitMq(
-                connectionString: rabbitMqOptions!.ConnectionString,
-                inputQueueName: rabbitMqOptions!.InputQueueName
-            ))
-            .Options(o =>
-            {
-                o.RetryStrategy(maxDeliveryAttempts: 3, secondLevelRetriesEnabled: true);
+        builder.Services.AddRebus(configure =>
+            configure
+                .Transport(t =>
+                    t.UseRabbitMq(
+                        connectionString: rabbitMqOptions!.ConnectionString,
+                        inputQueueName: rabbitMqOptions!.InputQueueName
+                    )
+                )
+                .Options(o =>
+                {
+                    o.RetryStrategy(maxDeliveryAttempts: 3, secondLevelRetriesEnabled: true);
 
-                o.SetNumberOfWorkers(1);
-                o.SetMaxParallelism(1);
-            }));
+                    o.SetNumberOfWorkers(1);
+                    o.SetMaxParallelism(1);
+                })
+        );
 
         builder.Services.AddSingleton<IConnection>(sp =>
+        {
+            var factory = new ConnectionFactory
             {
-                var factory = new ConnectionFactory
-                {
-                    Uri = new Uri(rabbitMqOptions!.ConnectionString)
-                };
-                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-            });
+                Uri = new Uri(rabbitMqOptions!.ConnectionString),
+            };
+            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        });
 
-        builder.Services.AddHealthChecks()
+        builder
+            .Services.AddHealthChecks()
             .AddNpgSql(
                 connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
                 name: "UserDbContext",

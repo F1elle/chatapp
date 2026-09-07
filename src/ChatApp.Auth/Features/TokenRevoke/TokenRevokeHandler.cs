@@ -1,5 +1,5 @@
-using ChatApp.Auth.Common.Abstractions;
 using ChatApp.Auth.Infrastructure.Data;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,19 +10,23 @@ public class TokenRevokeHandler : IHandler<TokenRevokeRequest, Result<TokenRevok
     private readonly AuthDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public TokenRevokeHandler(
-        AuthDbContext dbContext,
-        IHttpContextAccessor httpContextAccessor)
+    public TokenRevokeHandler(AuthDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Result<TokenRevokeResponse>> Handle(TokenRevokeRequest request, CancellationToken ct)
+    public async Task<Result<TokenRevokeResponse>> Handle(
+        TokenRevokeRequest request,
+        CancellationToken ct
+    )
     {
-        var user = await _dbContext.UserAuth
-            .Include(ua => ua.RefreshTokens)
-            .FirstOrDefaultAsync(ua => ua.RefreshTokens.Any(t => t.Token == request.RefreshToken), ct);
+        var user = await _dbContext
+            .UserAuth.Include(ua => ua.RefreshTokens)
+            .FirstOrDefaultAsync(
+                ua => ua.RefreshTokens.Any(t => t.Token == request.RefreshToken),
+                ct
+            );
 
         if (user == null)
             return Result.Failure<TokenRevokeResponse>("Invalid refresh token");

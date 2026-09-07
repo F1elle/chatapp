@@ -1,4 +1,4 @@
-namespace ChatApp.Chat.Common.Abstractions;
+namespace ChatApp.Common.Abstractions;
 
 public interface IHandler<in TRequest, TResponse>
 {

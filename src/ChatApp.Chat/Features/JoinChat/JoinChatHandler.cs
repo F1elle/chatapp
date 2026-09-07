@@ -1,6 +1,6 @@
-using ChatApp.Chat.Common.Abstractions;
 using ChatApp.Chat.Domain;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 
 namespace ChatApp.Chat.Features.JoinChat;
@@ -9,13 +9,15 @@ public class JoinChatHandler : IHandler<JoinChatRequest, Result<JoinChatResponse
 {
     private readonly ChatDbContext _dbContext;
 
-    public JoinChatHandler(
-        ChatDbContext dbContext)
-    {   
+    public JoinChatHandler(ChatDbContext dbContext)
+    {
         _dbContext = dbContext;
     }
 
-    public async Task<Result<JoinChatResponse>> Handle(JoinChatRequest request, CancellationToken ct)
+    public async Task<Result<JoinChatResponse>> Handle(
+        JoinChatRequest request,
+        CancellationToken ct
+    )
     {
         ChatParticipant chatParticipant = new(request.UserId, request.ChatId);
 

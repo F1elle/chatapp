@@ -1,10 +1,11 @@
+using System.Reflection;
 using System.Text;
-using ChatApp.Chat.Common.Extensions;
 using ChatApp.Chat.Common.Middleware;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Redis;
 using ChatApp.Chat.Infrastructure.Security;
+using ChatApp.Common.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -20,13 +21,18 @@ public static class ConfigureServices
         {
             configure.CustomizeProblemDetails = context =>
             {
-                context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+                context.ProblemDetails.Extensions.TryAdd(
+                    "requestId",
+                    context.HttpContext.TraceIdentifier
+                );
             };
         });
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+        builder.Services.Configure<JwtOptions>(
+            builder.Configuration.GetSection(JwtOptions.SectionName)
+        );
 
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
@@ -34,43 +40,51 @@ public static class ConfigureServices
         {
             options.AddDefaultPolicy(policy =>
             {
-                policy.WithOrigins("http://localhost:3000") // TODO: remove hardcoded
+                policy
+                    .WithOrigins("http://localhost:3000") // TODO: remove hardcoded
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
             });
         });
 
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+        builder
+            .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(
+                JwtBearerDefaults.AuthenticationScheme,
+                options =>
+                {
+                    options.TokenValidationParameters = new()
                     {
-                        options.TokenValidationParameters = new()
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions!.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions!.Audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtOptions!.Secret)
+                        ),
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
                         {
-                            ValidateIssuer = true,
-                            ValidIssuer = jwtOptions!.Issuer,
-                            ValidateAudience = true,
-                            ValidAudience = jwtOptions!.Audience,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.Secret))
-                        };
-                        options.Events = new JwtBearerEvents
-                        {
-                            OnMessageReceived = context =>
+                            var accessToken = context.Request.Query["access_token"]; // TODO: remove hardcoded
+
+                            var path = context.HttpContext.Request.Path;
+                            if (
+                                !string.IsNullOrEmpty(accessToken)
+                                && path.StartsWithSegments("/chat/hub")
+                            ) // TODO: remove hardcoded
                             {
-                                var accessToken = context.Request.Query["access_token"]; // TODO: remove hardcoded
-
-                                var path = context.HttpContext.Request.Path;
-                                if (!string.IsNullOrEmpty(accessToken) && 
-                                    path.StartsWithSegments("/chat/hub")) // TODO: remove hardcoded
-                                {
-                                    context.Token = accessToken;
-                                }
-                                return Task.CompletedTask;
+                                context.Token = accessToken;
                             }
-                        };
-
-                    });
+                            return Task.CompletedTask;
+                        },
+                    };
+                }
+            );
 
         builder.Services.AddAuthorization();
 
@@ -82,31 +96,35 @@ public static class ConfigureServices
                     npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 3,
                         maxRetryDelay: TimeSpan.FromSeconds(5),
-                        errorCodesToAdd: null);
+                        errorCodesToAdd: null
+                    );
                     npgsqlOptions.CommandTimeout(30);
-                }));
+                }
+            )
+        );
 
         builder.Services.AddHttpContextAccessor();
 
         // TODO: register my services here
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(
-            ConnectionMultiplexer.Connect(
-                builder.Configuration.GetConnectionString("Redis")!));
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!)
+        );
 
         builder.Services.AddScoped<IChatPresenceService, RedisChatPresenceService>();
         builder.Services.AddScoped<IChatAccessService, ChatAccessService>();
 
-        builder.Services.AddHandlers();
+        builder.Services.AddHandlers(Assembly.GetExecutingAssembly());
 
         // TODO: left here
 
-        builder.Services.AddHealthChecks()
+        builder
+            .Services.AddHealthChecks()
             .AddNpgSql(
                 connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
                 name: "ChatDbContext",
                 timeout: TimeSpan.FromSeconds(5),
-                tags: new[] { "db", "postgresql" }  
+                tags: new[] { "db", "postgresql" }
             )
             .AddRedis(
                 redisConnectionString: builder.Configuration.GetConnectionString("Redis")!,

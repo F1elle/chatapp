@@ -1,14 +1,14 @@
-using ChatApp.Chat.Common.Abstractions;
 using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.GetChatMessages;
 
-
-public class GetChatMessagesHandler : IHandler<GetChatMessagesRequest, Result<GetChatMessagesResponse>>
+public class GetChatMessagesHandler
+    : IHandler<GetChatMessagesRequest, Result<GetChatMessagesResponse>>
 {
     private readonly ILogger<GetChatMessagesHandler> _logger;
     private readonly ChatDbContext _dbContext;
@@ -17,25 +17,37 @@ public class GetChatMessagesHandler : IHandler<GetChatMessagesRequest, Result<Ge
     public GetChatMessagesHandler(
         ILogger<GetChatMessagesHandler> logger,
         ChatDbContext dbContext,
-        IChatAccessService chatAccessService)
+        IChatAccessService chatAccessService
+    )
     {
         _logger = logger;
-        _dbContext = dbContext; 
+        _dbContext = dbContext;
         _chatAccessService = chatAccessService;
     }
 
-    public async Task<Result<GetChatMessagesResponse>> Handle(GetChatMessagesRequest request, CancellationToken ct)
+    public async Task<Result<GetChatMessagesResponse>> Handle(
+        GetChatMessagesRequest request,
+        CancellationToken ct
+    )
     {
-        _logger.LogInformation("User with Id {Id} is trying to get messages from {ChatId}", request.UserId, request.ChatId);
-        var participantId = await _chatAccessService.GetParticipantIdAsync(request.UserId, request.ChatId, ct);
+        _logger.LogInformation(
+            "User with Id {Id} is trying to get messages from {ChatId}",
+            request.UserId,
+            request.ChatId
+        );
+        var participantId = await _chatAccessService.GetParticipantIdAsync(
+            request.UserId,
+            request.ChatId,
+            ct
+        );
 
         if (participantId == null)
         {
             return Result.Failure<GetChatMessagesResponse>("Not a chat member");
         }
 
-        var query = _dbContext.Messages
-            .Where(m => m.ChatId == request.ChatId)
+        var query = _dbContext
+            .Messages.Where(m => m.ChatId == request.ChatId)
             .Include(m => m.ParticipantSender)
             .AsNoTracking();
 
@@ -65,12 +77,10 @@ public class GetChatMessagesHandler : IHandler<GetChatMessagesRequest, Result<Ge
             messages = messages.Take(request.PageSize).ToList();
         }
 
-
         messages.Reverse();
 
         var nextCursor = messages.FirstOrDefault()?.SentAt;
 
         return new GetChatMessagesResponse(messages, nextCursor, hasMore);
     }
-        
 }

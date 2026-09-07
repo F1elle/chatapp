@@ -1,6 +1,6 @@
-using ChatApp.Chat.Common.Abstractions;
 using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,10 +17,11 @@ public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserC
 
     public async Task<Result<GetUserChatsResponse>> Handle(
         GetUserChatsRequest request,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        var query = _dbContext.Chats
-            .Where(c => c.ChatParticipants.Any(cp => cp.UserId == request.UserId))
+        var query = _dbContext
+            .Chats.Where(c => c.ChatParticipants.Any(cp => cp.UserId == request.UserId))
             .AsNoTracking();
 
         if (request.Cursor.HasValue)
@@ -38,10 +39,10 @@ public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserC
                 c.Type,
                 c.CreatedAt,
                 c.LastMessageAt,
-                c.LastMessage != null 
-                    ? c.LastMessage.Content ?? "No messages yet" 
+                c.LastMessage != null
+                    ? c.LastMessage.Content ?? "No messages yet"
                     : "No messages yet",
-                c.LastMessage != null 
+                c.LastMessage != null
                     ? new ChatParticipantDto(
                         c.LastMessage.ParticipantSenderId,
                         c.LastMessage.ParticipantSender.UserId

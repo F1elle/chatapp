@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Text;
-using ChatApp.Chat.Common.Middleware;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Redis;
 using ChatApp.Chat.Infrastructure.Security;
 using ChatApp.Common.Extensions;
+using ChatApp.Common.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

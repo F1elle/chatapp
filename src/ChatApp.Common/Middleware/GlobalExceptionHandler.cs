@@ -1,20 +1,13 @@
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ChatApp.Auth.Common.Middleware;
+namespace ChatApp.Common.Middleware;
 
-public class GlobalExceptionHandler : IExceptionHandler
+public class GlobalExceptionHandler(IProblemDetailsService problemDetailsService)
+    : IExceptionHandler
 {
-    private readonly IProblemDetailsService _problemDetailsService;
-
-    public GlobalExceptionHandler(
-        IProblemDetailsService problemDetailsService
-        )
-    {
-        _problemDetailsService = problemDetailsService;
-    }
-
     public async ValueTask<bool> TryHandleAsync(
         HttpContext context,
         Exception exception,
@@ -27,40 +20,42 @@ public class GlobalExceptionHandler : IExceptionHandler
                 StatusCodes.Status503ServiceUnavailable,
                 "Database operation failed. Please try again later."
             ),
-            
+
             HttpRequestException => (
                 StatusCodes.Status503ServiceUnavailable,
                 "External service is unavailable. Please try again later."
             ),
-            
+
             TimeoutException => (
                 StatusCodes.Status504GatewayTimeout,
                 "The operation timed out. Please try again."
             ),
-            
+
             OperationCanceledException => (
                 StatusCodes.Status499ClientClosedRequest,
                 "Request was cancelled"
             ),
-            
+
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "An internal error occurred. Please contact support."
-            )
+            ),
         };
 
         context.Response.StatusCode = statusCode;
 
-        return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = context,
-            Exception = exception,
-            ProblemDetails = new ProblemDetails
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
             {
-                Type = exception.GetType().Name,
-                Title = "An error occured",
-                Detail = message
+                HttpContext = context,
+                Exception = exception,
+                ProblemDetails = new ProblemDetails
+                {
+                    Type = exception.GetType().Name,
+                    Title = "An error occured",
+                    Detail = message,
+                },
             }
-        });
+        );
     }
 }

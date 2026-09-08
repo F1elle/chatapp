@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Auth.Features.TokenRevoke;
 
-public class TokenRevokeHandler : IHandler<TokenRevokeRequest, Result<TokenRevokeResponse>>
+public class TokenRevokeHandler
+    : IHandler<TokenRevokeRequest, Result<TokenRevokeResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -16,7 +17,7 @@ public class TokenRevokeHandler : IHandler<TokenRevokeRequest, Result<TokenRevok
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Result<TokenRevokeResponse>> Handle(
+    public async Task<Result<TokenRevokeResponse, AuthError>> Handle(
         TokenRevokeRequest request,
         CancellationToken ct
     )
@@ -29,12 +30,12 @@ public class TokenRevokeHandler : IHandler<TokenRevokeRequest, Result<TokenRevok
             );
 
         if (user == null)
-            return Result.Failure<TokenRevokeResponse>("Invalid refresh token");
+            return AuthError.InvalidRefreshToken;
 
         var refreshToken = user.RefreshTokens.First(t => t.Token == request.RefreshToken);
 
         if (!refreshToken.IsActive)
-            return Result.Failure<TokenRevokeResponse>("Invalid refresh token");
+            return AuthError.InvalidRefreshToken;
 
         var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
         refreshToken.Revoke(ipAddress: ipAddress);

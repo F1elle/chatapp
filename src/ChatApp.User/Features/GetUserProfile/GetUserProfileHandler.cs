@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.User.Features.GetUserProfile;
 
-public class GetUserProfileHandler : IHandler<GetUserProfileRequest, Result<GetUserProfileResponse>>
+public class GetUserProfileHandler
+    : IHandler<GetUserProfileRequest, Result<GetUserProfileResponse, UserError>>
 {
     private readonly UserDbContext _dbContext;
 
@@ -14,7 +15,7 @@ public class GetUserProfileHandler : IHandler<GetUserProfileRequest, Result<GetU
         _dbContext = dbContext;
     }
 
-    public async Task<Result<GetUserProfileResponse>> Handle(
+    public async Task<Result<GetUserProfileResponse, UserError>> Handle(
         GetUserProfileRequest request,
         CancellationToken ct
     )
@@ -25,7 +26,7 @@ public class GetUserProfileHandler : IHandler<GetUserProfileRequest, Result<GetU
         );
 
         return userProfile == null
-            ? Result.Failure<GetUserProfileResponse>("User not found")
+            ? UserError.UserNotFound
             : new GetUserProfileResponse(
                 userProfile.Id,
                 userProfile.DisplayName,

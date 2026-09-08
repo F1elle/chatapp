@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text;
 using ChatApp.Common.Extensions;
-using ChatApp.User.Common.Middleware;
+using ChatApp.Common.Middleware;
 using ChatApp.User.Infrastructure.Data;
 using ChatApp.User.Infrastructure.Messaging;
 using ChatApp.User.Infrastructure.Messaging.Handlers;

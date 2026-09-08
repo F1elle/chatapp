@@ -8,7 +8,8 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.TokenRefresh;
 
-public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRefreshResponse>>
+public class TokenRefreshHandler
+    : IHandler<TokenRefreshRequest, Result<TokenRefreshResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly TokenProvider _tokenProvider;
@@ -28,7 +29,7 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
         _jwtOptions = options.Value;
     }
 
-    public async Task<Result<TokenRefreshResponse>> Handle(
+    public async Task<Result<TokenRefreshResponse, AuthError>> Handle(
         TokenRefreshRequest request,
         CancellationToken ct
     )
@@ -41,7 +42,7 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
             );
 
         if (user == null)
-            return Result.Failure<TokenRefreshResponse>("Invalid refresh token");
+            return AuthError.InvalidRefreshToken;
 
         var refreshToken = user.RefreshTokens.First(t => t.Token == request.RefreshToken);
 
@@ -52,7 +53,7 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
                 RevokeDescendantRefreshTokens(refreshToken, user);
             }
 
-            return Result.Failure<TokenRefreshResponse>("Invalid refresh token");
+            return AuthError.InvalidRefreshToken;
         }
 
         var newAccessToken = _tokenProvider.Create(user);
@@ -67,7 +68,7 @@ public class TokenRefreshHandler : IHandler<TokenRefreshRequest, Result<TokenRef
 
         await _dbContext.SaveChangesAsync(ct);
 
-        return Result.Success(new TokenRefreshResponse(newAccessToken, newRefreshToken));
+        return new TokenRefreshResponse(newAccessToken, newRefreshToken);
     }
 
     private void RevokeDescendantRefreshTokens(RefreshToken refreshToken, UserAuth userAuth)

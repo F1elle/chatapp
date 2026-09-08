@@ -11,7 +11,8 @@ public class UserSignedUpHandler : IHandleMessages<UserSignedUpEvent>
 
     public UserSignedUpHandler(
         CreateUserProfileHandler handler,
-        ILogger<UserSignedUpHandler> logger)
+        ILogger<UserSignedUpHandler> logger
+    )
     {
         _handler = handler;
         _logger = logger;
@@ -27,15 +28,14 @@ public class UserSignedUpHandler : IHandleMessages<UserSignedUpEvent>
                 Id: message.UserId,
                 Email: message.Email,
                 DisplayName: message.DisplayName,
-                CreatedAt: message.SignedUpAt);
+                CreatedAt: message.SignedUpAt
+            );
 
             var result = await _handler.Handle(request, CancellationToken.None);
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation(
-                    "Profile created for user {UserId}",
-                    message.UserId);
+                _logger.LogInformation("Profile created for user {UserId}", message.UserId);
             }
             else
             {
@@ -44,13 +44,12 @@ public class UserSignedUpHandler : IHandleMessages<UserSignedUpEvent>
                     message.UserId,
                     result.Error
                 );
-                throw new Exception(result.Error);
+                throw new Exception(result.Error.Code);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing UserSignedUpEvent for {UserId}",
-            message.UserId);
+            _logger.LogError(ex, "Error processing UserSignedUpEvent for {UserId}", message.UserId);
 
             throw;
         }

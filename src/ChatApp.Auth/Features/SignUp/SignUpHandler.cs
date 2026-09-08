@@ -9,7 +9,7 @@ using Rebus.Bus;
 
 namespace ChatApp.Auth.Features.SignUp;
 
-public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse>>
+public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly PasswordHasher _passwordHasher;
@@ -22,14 +22,17 @@ public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse>>
         _bus = bus;
     }
 
-    public async Task<Result<SignUpResponse>> Handle(SignUpRequest request, CancellationToken ct)
+    public async Task<Result<SignUpResponse, AuthError>> Handle(
+        SignUpRequest request,
+        CancellationToken ct
+    )
     {
         var userAuth = _dbContext.UserAuth;
 
         var existingUser = await userAuth.FirstOrDefaultAsync(ua => ua.Email == request.Email, ct);
 
         if (existingUser != null)
-            return Result.Failure<SignUpResponse>("User with such email already exists");
+            return AuthError.EmailIsTaken;
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
 

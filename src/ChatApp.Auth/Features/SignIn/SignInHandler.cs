@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.SignIn;
 
-public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
+public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;
     private readonly PasswordHasher _passwordHasher;
@@ -30,17 +30,20 @@ public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
         _jwtOptions = jwtOptions.Value;
     }
 
-    public async Task<Result<SignInResponse>> Handle(SignInRequest request, CancellationToken ct)
+    public async Task<Result<SignInResponse, AuthError>> Handle(
+        SignInRequest request,
+        CancellationToken ct
+    )
     {
         var user = await _dbContext
             .UserAuth.Include(ua => ua.RefreshTokens)
             .FirstOrDefaultAsync(ua => ua.Email == request.Email);
 
         if (user == null)
-            return Result.Failure<SignInResponse>("Invalid email or password");
+            return AuthError.InvalidCredentials;
 
         if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
-            return Result.Failure<SignInResponse>("Invalid email or password");
+            return AuthError.InvalidCredentials;
 
         var accessToken = _tokenProvider.Create(user);
         var refreshToken = _tokenProvider.CreateRefreshToken();
@@ -53,6 +56,6 @@ public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse>>
 
         await _dbContext.SaveChangesAsync(ct);
 
-        return Result.Success(new SignInResponse(accessToken, refreshToken));
+        return new SignInResponse(accessToken, refreshToken);
     }
 }

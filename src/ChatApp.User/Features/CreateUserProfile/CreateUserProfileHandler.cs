@@ -5,7 +5,7 @@ using CSharpFunctionalExtensions;
 namespace ChatApp.User.Features.CreateUserProfile;
 
 public class CreateUserProfileHandler
-    : IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse>>
+    : IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse, UserError>>
 {
     private readonly UserDbContext _dbContext;
 
@@ -14,7 +14,7 @@ public class CreateUserProfileHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Result<CreateUserProfileResponse>> Handle(
+    public async Task<Result<CreateUserProfileResponse, UserError>> Handle(
         CreateUserProfileRequest request,
         CancellationToken ct
     )

@@ -6,7 +6,7 @@ public class Message
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public ChatParticipant Sender { get; init; } = null!;
-    public required Guid SenderId { get; init; }
+    public required Guid SenderId { get; init; } // TODO: participant or user ? - should be participant
     public required Guid ChatId { get; init; }
     public required DateTime SentAt { get; init; }
     public DateTime? EditedAt { get; set; } = null;
@@ -15,11 +15,12 @@ public class Message
 
     public List<Guid> AttachmentIds { get; init; } = [];
 
-    public List<MessageSeen> SeenByParticipants { get; set; } = []; // TODO: how to update real-time
+    // public List<MessageSeen> SeenByParticipants { get; set; } = []; // TODO: how to update real-time
 
     public bool IsEdited => EditedAt != null;
-    public bool IsRead => SeenByParticipants.Count != 0;
-    public int SeenCount => SeenByParticipants.Count;
+
+    // public bool IsRead => SeenByParticipants.Count != 0;
+    // public int SeenCount => SeenByParticipants.Count;
 
     private Message() { }
 

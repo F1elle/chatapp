@@ -9,4 +9,4 @@ public sealed record CreateChatRequest(
     ChatType Type
 );
 
-public sealed record CreateChatResponse();
+public sealed record CreateChatResponse(Guid ChatId);

@@ -1,5 +1,6 @@
 namespace ChatApp.Chat.Domain;
 
+// for future feature
 public class MessageSeen
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();

@@ -1,4 +1,4 @@
-using ChatApp.Chat.Contracts;
+using ChatApp.Chat.Features.Common;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.GetUserChats;
 
-public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserChatsResponse>>
+public class GetUserChatsHandler
+    : IHandler<GetUserChatsQuery, Result<GetUserChatsResult, ChatError>>
 {
     private readonly ChatDbContext _dbContext;
 
@@ -15,18 +16,18 @@ public class GetUserChatsHandler : IHandler<GetUserChatsRequest, Result<GetUserC
         _dbContext = dbContext;
     }
 
-    public async Task<Result<GetUserChatsResponse>> Handle(
-        GetUserChatsRequest request,
+    public async Task<Result<GetUserChatsResult, ChatError>> Handle(
+        GetUserChatsQuery query,
         CancellationToken ct
     )
     {
-        var query = _dbContext
-            .Chats.Where(c => c.ChatParticipants.Any(cp => cp.UserId == request.UserId))
+        var dbQuery = _dbContext
+            .Chats.Where(c => c.ChatParticipants.Any(cp => cp.UserId == query.UserId))
             .AsNoTracking();
 
-        if (request.Cursor.HasValue)
+        if (query.Cursor.HasValue)
         {
-            query = query.Where(c => (c.LastMessageAt ?? c.CreatedAt) < request.Cursor.Value);
+            dbQuery = dbQuery.Where(c => (c.LastMessageAt ?? c.CreatedAt) < query.Cursor.Value);
         }
 
         var orderedQuery = query.OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt);

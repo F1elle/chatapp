@@ -1,13 +1,11 @@
-using ChatApp.Chat.Contracts;
-
 namespace ChatApp.Chat.Features.GetUserChats;
 
-public sealed record GetUserChatsRequest(
-    Guid UserId,
-    DateTime? Cursor = null, 
-    int PageSize = 20);
+public sealed record GetUserChatsQuery(Guid UserId, Guid? Cursor = null, int PageSize = 20);
 
-public sealed record GetUserChatsResponse(
-    List<ChatPreviewDto> ChatPreviews, 
-    DateTime? NextCursor,
-    bool HasMore);
+public sealed record GetUserChatsResult();
+
+// public sealed record GetUserChatsResponse(
+//     List<ChatPreviewDto> ChatPreviews,
+//     DateTime? NextCursor,
+//     bool HasMore
+// );

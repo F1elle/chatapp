@@ -1,8 +1,8 @@
 using ChatApp.Chat.Domain.Enums;
 
-namespace ChatApp.Chat.Contracts;
+namespace ChatApp.Chat.Api.Contracts;
 
-public sealed record ChatPreviewDto( 
+public sealed record ChatPreviewDto(
     Guid Id,
     string? Name,
     ChatType Type,

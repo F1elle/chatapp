@@ -1,6 +1,6 @@
 using ChatApp.Chat.Domain.Enums;
 
-namespace ChatApp.Chat.Contracts;
+namespace ChatApp.Chat.Api.Contracts;
 
 public sealed record MessageDto( // TODO: extend it
     Guid Id,

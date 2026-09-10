@@ -1,10 +1,11 @@
+using ChatApp.Chat.Features.Common;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
 
 namespace ChatApp.Chat.Features.CreateChat;
 
-public class CreateChatHandler : IHandler<CreateChatRequest, Result<CreateChatResponse, ChatError>>
+public class CreateChatHandler : IHandler<CreateChatCommand, Result<CreateChatResult, ChatError>>
 {
     private readonly ILogger<CreateChatHandler> _logger;
     private readonly ChatDbContext _dbContext;
@@ -15,15 +16,15 @@ public class CreateChatHandler : IHandler<CreateChatRequest, Result<CreateChatRe
         _dbContext = dbContext;
     }
 
-    public async Task<Result<CreateChatResponse, ChatError>> Handle(
-        CreateChatRequest request,
+    public async Task<Result<CreateChatResult, ChatError>> Handle(
+        CreateChatCommand command,
         CancellationToken ct
     )
     {
-        if (request.ParticipantIds.Count == 0)
+        if (command.ParticipantIds.Count == 0)
             return ChatError.EmptyParticipantList;
 
-        var chat = Domain.Chat.CreateGroupChat(request.CreatedBy, request.Name);
+        var chat = Domain.Chat.CreateGroupChat(command.CreatedBy, command.Name);
 
         _logger.LogInformation(
             "Trying to create chat {ChatName} with ID {ChatId}",
@@ -31,7 +32,7 @@ public class CreateChatHandler : IHandler<CreateChatRequest, Result<CreateChatRe
             chat.Id
         );
 
-        var participants = request
+        var participants = command
             .ParticipantIds.Select(userId => new Domain.ChatParticipant(userId, chat.Id))
             .ToList();
 
@@ -45,6 +46,6 @@ public class CreateChatHandler : IHandler<CreateChatRequest, Result<CreateChatRe
         _dbContext.Chats.Add(chat);
         await _dbContext.SaveChangesAsync(ct);
 
-        return new CreateChatResponse(chat.Id);
+        return new CreateChatResult(chat.Id);
     }
 }

@@ -7,36 +7,36 @@ using ChatApp.Chat.Features.JoinChat;
 using ChatApp.Chat.Infrastructure.Hubs;
 using Microsoft.AspNetCore.Mvc;
 
-
-namespace ChatApp.Chat.Features.Chat;
+namespace ChatApp.Chat.Api.Endpoints;
 
 public static class ChatEndpoints
 {
     public static IEndpointRouteBuilder MapChatEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/chat")
-            .WithTags("Chat");
+        var group = app.MapGroup("/chat").WithTags("Chat");
 
-        group.MapHub<ChatHub>("/hub") 
-            .WithSummary("SignalR Chat Hub")
-            .RequireAuthorization();
+        group.MapHub<ChatHub>("/hub").WithSummary("SignalR Chat Hub").RequireAuthorization();
 
-        group.MapPost("/create", ChatCreateRoute)
+        group
+            .MapPost("/create", ChatCreateRoute)
             .WithName("CreateChat")
             .WithSummary("Create a new chat")
             .RequireAuthorization();
 
-        group.MapPost("/join", JoinChatRoute)
+        group
+            .MapPost("/join", JoinChatRoute)
             .WithName("JoinChat")
             .WithSummary("Join an existing chat")
             .RequireAuthorization();
 
-        group.MapGet("/list", GetUserChatsRoute)
+        group
+            .MapGet("/list", GetUserChatsRoute)
             .WithName("GetUserChats")
             .WithSummary("Returns paged chats")
             .RequireAuthorization();
-        
-        group.MapGet("/{chatId}/messages", GetChatMessagesRoute)
+
+        group
+            .MapGet("/{chatId}/messages", GetChatMessagesRoute)
             .WithName("GetChatMessages")
             .WithSummary("Returns paged messages from the chat")
             .RequireAuthorization();
@@ -45,9 +45,10 @@ public static class ChatEndpoints
     }
 
     private static async Task<IResult> ChatCreateRoute(
-            CreateChatRequest request,
-            CreateChatHandler handler,
-            CancellationToken ct)
+        CreateChatRequest request,
+        CreateChatHandler handler,
+        CancellationToken ct
+    )
     {
         var result = await handler.Handle(request, ct);
         if (!result.IsSuccess)
@@ -59,9 +60,10 @@ public static class ChatEndpoints
     }
 
     private static async Task<IResult> JoinChatRoute(
-            JoinChatRequest request,
-            JoinChatHandler handler,
-            CancellationToken ct)
+        JoinChatRequest request,
+        JoinChatHandler handler,
+        CancellationToken ct
+    )
     {
         var result = await handler.Handle(request, ct);
         if (!result.IsSuccess)
@@ -76,7 +78,8 @@ public static class ChatEndpoints
         [FromQuery] int pageSize,
         GetUserChatsHandler handler,
         ClaimsPrincipal claims,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var userId = claims.GetUserId();
 
@@ -85,7 +88,7 @@ public static class ChatEndpoints
 
         var request = new GetUserChatsRequest((Guid)userId, cursor, pageSize);
         var result = await handler.Handle(request, ct);
-        
+
         return result.IsSuccess
             ? Results.Ok(result.Value)
             : Results.BadRequest(new { error = result.Error });
@@ -97,7 +100,8 @@ public static class ChatEndpoints
         [FromQuery] int pageSize,
         GetChatMessagesHandler handler,
         ClaimsPrincipal claims,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var userId = claims.GetUserId();
 
@@ -109,6 +113,6 @@ public static class ChatEndpoints
 
         return result.IsSuccess
             ? Results.Ok(result.Value)
-            : Results.BadRequest(new {error = result.Error});
+            : Results.BadRequest(new { error = result.Error });
     }
 }

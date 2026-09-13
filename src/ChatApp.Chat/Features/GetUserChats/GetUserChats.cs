@@ -1,3 +1,7 @@
+using ChatApp.Chat.Domain.Enums;
+using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Common;
+
 namespace ChatApp.Chat.Features.GetUserChats;
 
 public sealed record GetUserChatsQuery(
@@ -7,7 +11,21 @@ public sealed record GetUserChatsQuery(
     int PageSize = 20
 );
 
-public sealed record GetUserChatsResult();
+public sealed record GetUserChatsResult(
+    Guid Id,
+    string Name,
+    ChatType Type,
+    DateTime CreatedAt,
+    MessagePreview MessagePreview
+);
+
+// public sealed record ChatPreview(
+//     Guid Id,
+//     string Name,
+//     ChatType Type,
+//     DateTime CreatedAt,
+//     MessagePreview MessagePreview
+// );
 
 // public sealed record GetUserChatsResponse(
 //     List<ChatPreviewDto> ChatPreviews,

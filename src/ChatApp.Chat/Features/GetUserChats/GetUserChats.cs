@@ -6,8 +6,8 @@ namespace ChatApp.Chat.Features.GetUserChats;
 
 public sealed record GetUserChatsQuery(
     Guid UserId,
-    Guid? ChatId = null,
-    DateTime? LastMessageAt = null,
+    Guid? CursorChatId = null,
+    DateTime? CursorLastMessageAt = null,
     int PageSize = 20
 );
 

@@ -23,36 +23,22 @@ public class GetUserChatsHandler
     {
         var dbQuery = _dbContext
             .Chats.Where(c => c.ChatParticipants.Any(cp => cp.UserId == query.UserId))
+            .OrderByDescending(c => c.LastMessageAt)
+            .ThenByDescending(c => c.Id)
             .AsNoTracking();
 
-        if (query.Cursor.HasValue)
+        if (query.CursorChatId is { } cursorId && query.CursorLastMessageAt is { } cursorTime)
         {
-            dbQuery = dbQuery.Where(c => (c.LastMessageAt ?? c.CreatedAt) < query.Cursor.Value);
+            dbQuery = dbQuery.Where(c =>
+                (c.LastMessageAt ?? c.CreatedAt) > cursorTime
+                || (c.LastMessageAt == cursorTime && c.Id.CompareTo(cursorId) < 0)
+            );
         }
 
-        var orderedQuery = query.OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt);
+        var chats = await dbQuery.Take(query.PageSize + 1).ToListAsync(ct);
 
-        var chats = await orderedQuery
-            .Take(request.PageSize + 1)
-            .Select(c => new ChatPreviewDto(
-                c.Id,
-                c.Name,
-                c.Type,
-                c.CreatedAt,
-                c.LastMessageAt,
-                c.LastMessage != null
-                    ? c.LastMessage.Content ?? "No messages yet"
-                    : "No messages yet",
-                c.LastMessage != null
-                    ? new ChatParticipantDto(
-                        c.LastMessage.ParticipantSenderId,
-                        c.LastMessage.ParticipantSender.UserId
-                    )
-                    : null
-            ))
-            .ToListAsync(ct);
-
-        var hasMore = chats.Count > request.PageSize;
+        var hasMore = chats.Count > query.PageSize;
+        // TODO: generic paged result; inherit UserChatsResponse from it
 
         if (hasMore)
         {

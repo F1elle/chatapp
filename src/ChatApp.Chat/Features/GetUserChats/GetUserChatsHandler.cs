@@ -1,6 +1,7 @@
 using ChatApp.Chat.Features.Common;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
+using ChatApp.Common.Extensions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,18 +36,23 @@ public class GetUserChatsHandler
             );
         }
 
-        var chats = await dbQuery.Take(query.PageSize + 1).ToListAsync(ct);
-
-        var hasMore = chats.Count > query.PageSize;
-        // TODO: generic paged result; inherit UserChatsResponse from it
-
-        if (hasMore)
-        {
-            chats = chats.Take(request.PageSize).ToList();
-        }
-
-        var nextCursor = chats.LastOrDefault()?.LastMessageAt;
-
-        return new GetUserChatsResponse(chats, nextCursor, hasMore);
+        return await dbQuery.ToPagedResult<Domain.Chat, ChatListItem, string, GetUserChatsResult>(
+            pageSize: 20,
+            projector: (v) =>
+                new ChatListItem(
+                    v.Id,
+                    v.Name,
+                    v.Type,
+                    v.CreatedAt,
+                    new Common.Contracts.MessagePreview(
+                        v.LastMessage.Sender.Name,
+                        v.LastMessage.Content,
+                        v.LastMessage.Type,
+                        v.LastMessage.SentAt
+                    )
+                ),
+            cursorSelector: (v) => $"{v.MessagePreview.SentAt}_{v.Id}",
+            ct
+        );
     }
 }

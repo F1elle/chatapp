@@ -1,8 +1,8 @@
 namespace ChatApp.Common;
 
-public class PagedResult<T>
+public abstract record PagedResult<TItem, TCursor>
 {
-    public IReadOnlyList<T> Items { get; set; } = [];
-    public string? NextCursor { get; set; }
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+    public TCursor? NextCursor { get; set; }
     public bool HasMore { get; set; }
 }

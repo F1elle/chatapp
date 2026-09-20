@@ -4,12 +4,11 @@ using ChatApp.Common;
 
 namespace ChatApp.Chat.Features.GetUserChats;
 
-public sealed record GetUserChatsQuery(
-    Guid UserId,
-    Guid? CursorChatId = null,
-    DateTime? CursorLastMessageAt = null,
-    int PageSize = 20
-);
+public sealed record GetUserChatsQuery(Guid UserId, ChatCursor? Cursor = null, int PageSize = 20);
+
+public sealed record GetUserChatsResult : PagedResult<ChatListItem, ChatCursor>;
+
+public sealed record ChatCursor(DateTime LastUpdateAt, Guid ChatId);
 
 public sealed record ChatListItem(
     Guid Id,
@@ -18,5 +17,3 @@ public sealed record ChatListItem(
     DateTime CreatedAt,
     MessagePreview MessagePreview
 );
-
-public sealed record GetUserChatsResult : PagedResult<ChatListItem, string>;

@@ -12,7 +12,9 @@ public class Chat
     public DateTime CreatedAt { get; init; }
     public Message? LastMessage { get; set; }
     public Guid? LastMessageId { get; set; }
-    public DateTime? LastMessageAt { get; set; }
+
+    // For ordering in chat list
+    public DateTime LastUpdateAt { get; set; }
 
     public List<ChatParticipant> ChatParticipants { get; set; } = [];
     public List<Message> Messages { get; set; } = [];
@@ -27,6 +29,7 @@ public class Chat
             Name = null,
             CreatedBy = null,
             CreatedAt = DateTime.UtcNow,
+            LastUpdateAt = DateTime.UtcNow,
         };
     }
 
@@ -38,13 +41,14 @@ public class Chat
             Name = name,
             CreatedBy = createdBy,
             CreatedAt = DateTime.UtcNow,
+            LastUpdateAt = DateTime.UtcNow,
         };
     }
 
     public void UpdateLastMessage(Message message)
     {
         LastMessageId = message.Id;
-        LastMessageAt = message.SentAt;
+        LastUpdateAt = message.SentAt;
         LastMessage = message;
     }
 

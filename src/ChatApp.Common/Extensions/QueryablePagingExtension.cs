@@ -8,7 +8,8 @@ public static class QueryablePagingExtension
         this IQueryable<TSource> query,
         int pageSize,
         Func<TSource, TDto> projector,
-        Func<TDto, TCursor> cursorSelector,
+        Func<TSource, TCursor> cursorSelector,
+        TResult? _ = default,
         CancellationToken ct = default
     )
         where TResult : PagedResult<TDto, TCursor>, new()
@@ -17,16 +18,12 @@ public static class QueryablePagingExtension
 
         bool hasMore = rawItems.Count > pageSize;
 
-        var itemsToProcess = hasMore ? rawItems.Take(pageSize) : rawItems;
-
-        var dtos = itemsToProcess.Select(projector).ToList();
-
-        TCursor? nextCursor = hasMore && dtos.Count > 0 ? cursorSelector(dtos[^1]) : default;
+        var items = hasMore ? rawItems.Take(pageSize).ToList() : rawItems;
 
         return new TResult
         {
-            Items = dtos,
-            NextCursor = nextCursor,
+            Items = items.Select(projector).ToList(),
+            NextCursor = hasMore && items.Count > 0 ? cursorSelector(items[^1]) : default,
             HasMore = hasMore,
         };
     }

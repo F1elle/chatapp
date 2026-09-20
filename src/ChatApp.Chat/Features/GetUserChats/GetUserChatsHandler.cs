@@ -1,4 +1,5 @@
 using ChatApp.Chat.Features.Common;
+using ChatApp.Chat.Features.Common.Contracts;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
 using ChatApp.Common.Extensions;
@@ -24,34 +25,35 @@ public class GetUserChatsHandler
     {
         var dbQuery = _dbContext
             .Chats.Where(c => c.ChatParticipants.Any(cp => cp.UserId == query.UserId))
-            .OrderByDescending(c => c.LastMessageAt)
+            .OrderByDescending(c => c.LastUpdateAt)
             .ThenByDescending(c => c.Id)
+            .Include(c => c.LastMessage.Sender)
             .AsNoTracking();
 
-        if (query.CursorChatId is { } cursorId && query.CursorLastMessageAt is { } cursorTime)
+        if (query.Cursor is { } cursor)
         {
             dbQuery = dbQuery.Where(c =>
-                (c.LastMessageAt ?? c.CreatedAt) > cursorTime
-                || (c.LastMessageAt == cursorTime && c.Id.CompareTo(cursorId) < 0)
+                c.LastUpdateAt > cursor.LastUpdateAt
+                || (c.LastUpdateAt == cursor.LastUpdateAt && c.Id.CompareTo(cursor.ChatId) < 0)
             );
         }
 
-        return await dbQuery.ToPagedResult<Domain.Chat, ChatListItem, string, GetUserChatsResult>(
-            pageSize: 20,
-            projector: (v) =>
-                new ChatListItem(
-                    v.Id,
-                    v.Name,
-                    v.Type,
-                    v.CreatedAt,
-                    new Common.Contracts.MessagePreview(
-                        v.LastMessage.Sender.Name,
-                        v.LastMessage.Content,
-                        v.LastMessage.Type,
-                        v.LastMessage.SentAt
-                    )
-                ),
-            cursorSelector: (v) => $"{v.MessagePreview.SentAt}_{v.Id}",
+        return await dbQuery.ToPagedResult(
+            query.PageSize,
+            v => new ChatListItem(
+                v.Id,
+                v.Name,
+                v.Type,
+                v.CreatedAt,
+                new MessagePreview(
+                    v.LastMessage.Sender.Name,
+                    v.LastMessage.Content,
+                    v.LastMessage.Type,
+                    v.LastMessage.SentAt
+                )
+            ),
+            v => new ChatCursor(v.LastUpdateAt, v.Id),
+            default(GetUserChatsResult),
             ct
         );
     }

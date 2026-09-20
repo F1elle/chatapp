@@ -1,4 +1,3 @@
-using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Domain;
 using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
@@ -7,6 +6,8 @@ using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.SendMessage;
+
+// TODO: publish sent message to rabbitMQ and pick it up in hub
 
 public class SendMessageHandler : IHandler<SendMessageRequest, Result<SendMessageResponse>>
 {

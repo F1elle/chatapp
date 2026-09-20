@@ -4,9 +4,9 @@ namespace ChatApp.Chat.Domain;
 public class MessageSeen
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
-    public Guid MessageId { get; set; }
-    public Guid ParticipantId { get; set; }
-    public DateTime SeenAt { get; set; } = DateTime.UtcNow;
+    public Guid MessageId { get; init; }
+    public Guid ParticipantId { get; init; }
+    public DateTime SeenAt { get; init; } = DateTime.UtcNow;
 
     private MessageSeen() { }
 

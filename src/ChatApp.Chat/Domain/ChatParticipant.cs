@@ -5,11 +5,11 @@ public class ChatParticipant
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required string Name { get; set; } // TODO: what to do with that ?
     public Guid UserId { get; init; }
     public Guid ChatId { get; init; }
     public DateTime JoinedAt { get; set; }
 
+    // For EFCore
     private ChatParticipant() { }
 
     public ChatParticipant(Guid userId, Guid chatId)

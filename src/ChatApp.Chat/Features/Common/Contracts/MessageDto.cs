@@ -2,11 +2,12 @@ using ChatApp.Chat.Domain.Enums;
 
 namespace ChatApp.Chat.Features.Common.Contracts;
 
-// Used when message preview is needed - notification, chat entry, etc.
-public sealed record MessagePreview(
-    string SenderName,
-    Guid ChatId,
+// Message DTO shared across handlers
+public sealed record MessageDto(
+    Guid Id,
+    Guid SenderId,
     string? Content,
     MessageType Type,
+    Guid ChatId,
     DateTime SentAt
 );

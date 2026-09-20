@@ -9,8 +9,10 @@ public class Message
     public required Guid SenderId { get; init; } // TODO: participant or user ? - should be participant
     public required Guid ChatId { get; init; }
     public required DateTime SentAt { get; init; }
-    public DateTime? EditedAt { get; set; } = null;
     public string? Content { get; set; }
+
+    // For future features
+    public DateTime? EditedAt { get; set; } = null;
     public required MessageType Type { get; init; }
 
     public List<Guid> AttachmentIds { get; init; } = [];

@@ -1,11 +1,9 @@
-using ChatApp.Chat.Contracts;
-
 namespace ChatApp.Chat.Features.GetChatMessages;
 
-public sealed record GetChatMessagesRequest(
+public sealed record GetChatMessagesQuery(
     Guid ChatId,
     Guid UserId,
-    DateTime? Cursor = null,
+    Guid? Cursor = null,
     int PageSize = 20
 );
 

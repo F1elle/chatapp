@@ -7,18 +7,22 @@ public class Chat
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
     public required ChatType Type { get; init; }
-    public string? Name { get; set; } = null;
-    public Guid? CreatedBy { get; set; }
+
+    // Either Chat name or UserSnapshot name depending on the type
+    public string? Name { get; private set; } = null;
+
+    public Guid? CreatedBy { get; init; }
     public DateTime CreatedAt { get; init; }
-    public Message? LastMessage { get; set; }
-    public Guid? LastMessageId { get; set; }
+    public Message? LastMessage { get; private set; }
+    public Guid? LastMessageId { get; private set; }
 
     // For ordering in chat list
-    public DateTime LastUpdateAt { get; set; }
+    public DateTime LastUpdateAt { get; private set; }
 
     public List<ChatParticipant> ChatParticipants { get; set; } = [];
     public List<Message> Messages { get; set; } = [];
 
+    // For EFCore
     private Chat() { }
 
     public static Chat CreatePrivateChat()

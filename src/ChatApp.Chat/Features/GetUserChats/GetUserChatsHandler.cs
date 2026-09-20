@@ -1,6 +1,7 @@
 using ChatApp.Chat.Features.Common;
 using ChatApp.Chat.Features.Common.Contracts;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Common;
 using ChatApp.Common.Abstractions;
 using ChatApp.Common.Extensions;
 using CSharpFunctionalExtensions;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChatApp.Chat.Features.GetUserChats;
 
 public class GetUserChatsHandler
-    : IHandler<GetUserChatsQuery, Result<GetUserChatsResult, ChatError>>
+    : IHandler<GetUserChatsQuery, Result<PagedResult<ChatListItem, ChatCursor>, ChatError>>
 {
     private readonly ChatDbContext _dbContext;
 
@@ -18,7 +19,7 @@ public class GetUserChatsHandler
         _dbContext = dbContext;
     }
 
-    public async Task<Result<GetUserChatsResult, ChatError>> Handle(
+    public async Task<Result<PagedResult<ChatListItem, ChatCursor>, ChatError>> Handle(
         GetUserChatsQuery query,
         CancellationToken ct
     )
@@ -33,7 +34,7 @@ public class GetUserChatsHandler
         if (query.Cursor is { } cursor)
         {
             dbQuery = dbQuery.Where(c =>
-                c.LastUpdateAt > cursor.LastUpdateAt
+                c.LastUpdateAt < cursor.LastUpdateAt
                 || (c.LastUpdateAt == cursor.LastUpdateAt && c.Id.CompareTo(cursor.ChatId) < 0)
             );
         }
@@ -53,7 +54,6 @@ public class GetUserChatsHandler
                 )
             ),
             v => new ChatCursor(v.LastUpdateAt, v.Id),
-            default(GetUserChatsResult),
             ct
         );
     }

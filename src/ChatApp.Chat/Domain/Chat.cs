@@ -19,7 +19,8 @@ public class Chat
     // For ordering in chat list
     public DateTime LastUpdateAt { get; private set; }
 
-    public List<ChatParticipant> ChatParticipants { get; set; } = [];
+    private readonly List<ChatParticipant> _participants = [];
+    public IReadOnlyList<ChatParticipant> Participants => _participants;
     public List<Message> Messages { get; set; } = [];
 
     // For EFCore

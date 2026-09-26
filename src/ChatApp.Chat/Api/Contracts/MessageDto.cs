@@ -2,7 +2,7 @@ using ChatApp.Chat.Domain.Enums;
 
 namespace ChatApp.Chat.Api.Contracts;
 
-public sealed record MessageDto( // TODO: extend it
+public sealed record DeprMessageDto( // TODO: extend it
     Guid Id,
     Guid ChatId,
     ChatParticipantDto Sender,

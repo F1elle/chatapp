@@ -42,8 +42,8 @@ public class CreateChatHandler : IHandler<CreateChatCommand, Result<CreateChatRe
             chat.Id
         );
 
-        chat.ChatParticipants.AddRange(participants);
         _dbContext.Chats.Add(chat);
+        _dbContext.ChatParticipants.AddRange(participants);
         await _dbContext.SaveChangesAsync(ct);
 
         return new CreateChatResult(chat.Id);

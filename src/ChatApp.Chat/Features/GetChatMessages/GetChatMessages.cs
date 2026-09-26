@@ -6,9 +6,3 @@ public sealed record GetChatMessagesQuery(
     Guid? Cursor = null,
     int PageSize = 20
 );
-
-public sealed record GetChatMessagesResponse(
-    List<MessageDto> Messages,
-    DateTime? NextCursor,
-    bool HasMore
-);

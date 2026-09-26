@@ -9,5 +9,6 @@ public sealed record MessageDto(
     string? Content,
     MessageType Type,
     Guid ChatId,
-    DateTime SentAt
+    DateTime SentAt,
+    List<Guid> AttachmentIds
 );

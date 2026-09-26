@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ChatApp.Chat.Domain;
 
 // Relation entity between user and chat
@@ -14,6 +16,7 @@ public class ChatParticipant
     // For EFCore
     private ChatParticipant() { }
 
+    [SetsRequiredMembers]
     public ChatParticipant(Guid userId, Guid chatId)
     {
         UserId = userId;

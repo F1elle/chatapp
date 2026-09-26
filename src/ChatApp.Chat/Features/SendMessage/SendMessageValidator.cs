@@ -1,32 +1,30 @@
-using ChatApp.Chat.Domain.Enums;
-
 namespace ChatApp.Chat.Features.SendMessage;
 
 public class SendMessageValidator // TODO: FluentValidation later
 {
-    public bool Validate(SendMessageRequest request)
+    public bool Validate(SendMessageCommand command)
     {
-        if (request.Content == null || request.Content.Length == 0) // TODO: allow message to be empty only if it has attachments
+        if (command.Content == null || command.Content.Length == 0) // TODO: allow message to be empty only if it has attachments
         {
             return false;
         }
 
-        if (request.Content.Length > 4096)  // TODO: move out to config
+        if (command.Content.Length > 4096) // TODO: move out to config
         {
             return false;
         }
 
-        var allowedTypes = new List<MessageType>
-        {
-            MessageType.Text,
-            MessageType.WithMediaAttachments,
-            MessageType.System,
-        };
+        // var allowedTypes = new List<MessageType>
+        // {
+        //     MessageType.Text,
+        //     MessageType.WithMediaAttachments,
+        //     MessageType.System,
+        // };
 
-        if (!allowedTypes.Contains(request.Type))
-        {
-            return false;
-        }
+        // if (!allowedTypes.Contains(command.Type))
+        // {
+        //     return false;
+        // }
 
         return true;
     }

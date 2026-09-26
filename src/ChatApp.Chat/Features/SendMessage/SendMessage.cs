@@ -1,15 +1,8 @@
-using ChatApp.Chat.Contracts;
-using ChatApp.Chat.Domain.Enums;
-
 namespace ChatApp.Chat.Features.SendMessage;
 
-public sealed record SendMessageRequest(
+public sealed record SendMessageCommand(
     Guid SenderId,
     Guid ChatId,
-    string Content, // make it nullable in the future
-    MessageType Type = MessageType.Text);
-
-public sealed record SendMessageResponse(
-    MessageDto Message,
-    IReadOnlyCollection<Guid> InactiveParticipantIds
+    string Content // make it nullable in the future, add media
+// MessageType Type = MessageType.Text              // add later
 );

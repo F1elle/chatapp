@@ -1,86 +1,66 @@
-using ChatApp.Chat.Contracts;
 using ChatApp.Chat.Features.Abstractions;
+using ChatApp.Chat.Features.Common;
+using ChatApp.Chat.Features.Common.Contracts;
 using ChatApp.Chat.Infrastructure.Data;
+using ChatApp.Common;
 using ChatApp.Common.Abstractions;
+using ChatApp.Common.Extensions;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.GetChatMessages;
 
 public class GetChatMessagesHandler
-    : IHandler<GetChatMessagesRequest, Result<GetChatMessagesResponse>>
+    : IHandler<GetChatMessagesQuery, Result<PagedResult<MessageDto, Guid>, ChatError>>
 {
-    private readonly ILogger<GetChatMessagesHandler> _logger;
     private readonly ChatDbContext _dbContext;
     private readonly IChatAccessService _chatAccessService;
 
-    public GetChatMessagesHandler(
-        ILogger<GetChatMessagesHandler> logger,
-        ChatDbContext dbContext,
-        IChatAccessService chatAccessService
-    )
+    public GetChatMessagesHandler(ChatDbContext dbContext, IChatAccessService chatAccessService)
     {
-        _logger = logger;
         _dbContext = dbContext;
         _chatAccessService = chatAccessService;
     }
 
-    public async Task<Result<GetChatMessagesResponse>> Handle(
-        GetChatMessagesRequest request,
+    public async Task<Result<PagedResult<MessageDto, Guid>, ChatError>> Handle(
+        GetChatMessagesQuery query,
         CancellationToken ct
     )
     {
-        _logger.LogInformation(
-            "User with Id {Id} is trying to get messages from {ChatId}",
-            request.UserId,
-            request.ChatId
-        );
         var participantId = await _chatAccessService.GetParticipantIdAsync(
-            request.UserId,
-            request.ChatId,
+            query.UserId,
+            query.ChatId,
             ct
         );
 
         if (participantId == null)
         {
-            return Result.Failure<GetChatMessagesResponse>("Not a chat member");
+            return ChatError.NotChatParticipant;
         }
 
-        var query = _dbContext
-            .Messages.Where(m => m.ChatId == request.ChatId)
-            .Include(m => m.ParticipantSender)
+        var dbQuery = _dbContext
+            .Messages.Where(m => m.ChatId == query.ChatId)
+            .OrderByDescending(m => m.Id)
             .AsNoTracking();
 
-        if (request.Cursor.HasValue)
+        if (query.Cursor is { } cursor)
         {
-            query = query.Where(m => m.SentAt < request.Cursor.Value);
+            dbQuery = dbQuery.Where(m => m.Id < cursor);
         }
 
-        var orderedQuery = query.OrderByDescending(m => m.SentAt);
-
-        var messages = await orderedQuery
-            .Take(request.PageSize + 1)
-            .Select(m => new MessageDto(
+        return await dbQuery.ToPagedResult(
+            query.PageSize,
+            m => new MessageDto(
                 m.Id,
-                m.ChatId,
-                new ChatParticipantDto(m.ParticipantSender.Id, m.ParticipantSender.UserId),
-                m.Type,
+                m.SenderId,
                 m.Content,
-                m.SentAt
-            ))
-            .ToListAsync(ct);
-
-        var hasMore = messages.Count > request.PageSize;
-
-        if (hasMore)
-        {
-            messages = messages.Take(request.PageSize).ToList();
-        }
-
-        messages.Reverse();
-
-        var nextCursor = messages.FirstOrDefault()?.SentAt;
-
-        return new GetChatMessagesResponse(messages, nextCursor, hasMore);
+                m.Type,
+                m.ChatId,
+                m.SentAt,
+                m.AttachmentIds
+            ),
+            m => m.Id,
+            ct
+        );
     }
 }

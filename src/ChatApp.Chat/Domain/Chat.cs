@@ -21,6 +21,8 @@ public class Chat
 
     private readonly List<ChatParticipant> _participants = [];
     public IReadOnlyList<ChatParticipant> Participants => _participants;
+
+    [Obsolete("No-no, remove once removed everywhere")]
     public List<Message> Messages { get; set; } = [];
 
     // For EFCore

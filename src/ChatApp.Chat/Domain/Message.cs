@@ -5,7 +5,7 @@ namespace ChatApp.Chat.Domain;
 public class Message
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
-    public required Guid SenderId { get; init; } // TODO: participant or user ? - should be participant
+    public required Guid SenderId { get; init; } // real user id, not participant id
     public required Guid ChatId { get; init; }
     public required DateTime SentAt { get; init; }
     public string? Content { get; set; }

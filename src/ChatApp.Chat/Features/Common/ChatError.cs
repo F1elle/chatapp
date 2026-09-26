@@ -6,4 +6,8 @@ public enum ChatError
     // public static readonly ChatError EmptyParticipantList = new("CA-CE11", 400);
     FailedCreatingChat,
     EmptyParticipantList,
+    NotChatParticipant,
+    ChatNotFound,
+    NotGroupChat,
+    InvalidMessage,
 }

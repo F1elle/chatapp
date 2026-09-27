@@ -58,7 +58,7 @@ public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto
             try
             {
                 var message = Message.CreateTextMessage(
-                    (Guid)participantId,
+                    command.SenderId,
                     command.ChatId,
                     command.Content
                 );

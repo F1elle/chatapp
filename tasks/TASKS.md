@@ -1,5 +1,6 @@
 ## scope
 - [x] SendMessage
+- [] SendMessage fixes
 - [] signalr hub
 
 ## plans

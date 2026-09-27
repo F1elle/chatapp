@@ -13,7 +13,8 @@ public class Chat
 
     public Guid? CreatedBy { get; init; }
     public DateTime CreatedAt { get; init; }
-    public Message? LastMessage { get; private set; }
+    private Message? _lastMessage { get; set; }
+    public Message? LastMessage => _lastMessage;
     public Guid? LastMessageId { get; private set; }
 
     // For ordering in chat list
@@ -56,7 +57,6 @@ public class Chat
     {
         LastMessageId = message.Id;
         LastUpdateAt = message.SentAt;
-        LastMessage = message;
     }
 
     // TODO: add chat participants, return result

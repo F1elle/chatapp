@@ -1,11 +1,11 @@
 namespace ChatApp.Chat.Features.SendMessage;
 
-public class SendMessageValidator // TODO: FluentValidation later
+public static class SendMessageValidator // TODO: FluentValidation later
 {
-    public bool Validate(SendMessageCommand command)
+    public static bool Validate(SendMessageCommand command)
     {
-        if (command.Content == null || command.Content.Length == 0) // TODO: allow message to be empty only if it has attachments
-        {
+        if (command.Content == null || command.Content.Length == 0) // TODO: allow message to be empty only if it has attachments;
+        { //no attachments yet implemented so no empty messages allowed :D
             return false;
         }
 

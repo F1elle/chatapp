@@ -9,6 +9,7 @@ using ChatApp.Common.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Rebus.Config;
 using StackExchange.Redis;
 
 namespace ChatApp.Chat;
@@ -134,5 +135,21 @@ public static class ConfigureServices
             );
 
         builder.Services.AddSignalR();
+
+        // // messaging bus
+        // builder.Services.AddRebus(configure =>
+        //     configure.Transport(t => t.UseRabbitMq("link", "queue-name")) // TODO add link, queue name
+        // // .Routing(r => r.TypeBased().Map<type>("queue-name"))
+        // );
+
+        // builder.Services.AddRebus(configure => configure
+        //     .Transport(t => t.UseRabbitMq("amqp://localhost", "orders-queue"))
+        //     .Options(o =>
+        //     {
+        //         o.RetryStrategy(maxDeliveryAttempts: 5);
+        //         o.SimpleRetryStrategy(errorQueueAddress: "orders-error");
+        //     })
+        //     .Logging(l => l.MicrosoftExtensionsLogging(loggerFactory))
+        // );
     }
 }

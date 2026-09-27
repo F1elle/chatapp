@@ -10,4 +10,5 @@ public enum ChatError
     ChatNotFound,
     NotGroupChat,
     InvalidMessage,
+    DbError,
 }

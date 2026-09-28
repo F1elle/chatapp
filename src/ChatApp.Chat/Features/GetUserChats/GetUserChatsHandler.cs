@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.GetUserChats;
 
+[RegisterScoped]
 public class GetUserChatsHandler
     : IHandler<GetUserChatsQuery, Result<PagedResult<ChatListItem, ChatListCursor>, ChatError>>
 {

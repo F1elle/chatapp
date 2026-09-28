@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.SendMessage;
 
+[RegisterScoped]
 public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto, ChatError>>
 {
     private readonly ChatDbContext _dbContext;
@@ -70,8 +71,6 @@ public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto
                 );
 
                 _dbContext.Add(message);
-
-                await _dbContext.SaveChangesAsync(ct);
 
                 var chat = await _dbContext
                     .Chats.Where(c => c.Id == command.ChatId)

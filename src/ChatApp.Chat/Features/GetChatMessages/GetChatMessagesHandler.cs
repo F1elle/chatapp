@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.GetChatMessages;
 
+[RegisterScoped]
 public class GetChatMessagesHandler
     : IHandler<GetChatMessagesQuery, Result<PagedResult<MessageDto, Guid>, ChatError>>
 {

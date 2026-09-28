@@ -5,6 +5,7 @@ using CSharpFunctionalExtensions;
 
 namespace ChatApp.Chat.Features.CreateChat;
 
+[RegisterScoped]
 public class CreateChatHandler : IHandler<CreateChatCommand, Result<CreateChatResult, ChatError>>
 {
     private readonly ILogger<CreateChatHandler> _logger;

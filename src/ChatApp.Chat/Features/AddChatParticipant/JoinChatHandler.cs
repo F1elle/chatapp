@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Features.AddChatParticipant;
 
+[RegisterScoped]
 public class JoinChatHandler : IHandler<AddChatParticipantCommand, Result<Guid, ChatError>>
 {
     private readonly ChatDbContext _dbContext;

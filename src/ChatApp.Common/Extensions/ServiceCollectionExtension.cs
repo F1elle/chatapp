@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ChatApp.Common.Extensions;
 
+[Obsolete("Moving to source gen package")]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddHandlers(

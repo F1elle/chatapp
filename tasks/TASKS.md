@@ -2,7 +2,8 @@
 - [x] SendMessage
 - [x] SendMessage fixes
 - [] Endpoints
-- [] remove hub registration from ChatEndpoints
+    - [] send message endpoint
+    - [] remove hub registration from ChatEndpoints
 - [] signalr hub
 - [] db schema
 

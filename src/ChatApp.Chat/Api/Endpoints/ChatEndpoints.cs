@@ -110,4 +110,8 @@ public static class ChatEndpoints
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
+
+    // TODO: implement that
+    private static async Task<IResult> SendMessageRoute() =>
+        Results.Json(data: new { message = "I'm a teapot" }, statusCode: 418);
 }

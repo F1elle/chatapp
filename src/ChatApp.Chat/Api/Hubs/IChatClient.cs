@@ -1,6 +1,6 @@
-using ChatApp.Chat.Contracts;
+using ChatApp.Chat.Features.Common.Contracts;
 
-namespace ChatApp.Chat.Infrastructure.Hubs;
+namespace ChatApp.Chat.Api.Hubs;
 
 public interface IChatClient
 {

@@ -4,22 +4,24 @@ using ChatApp.Chat.Common.Extensions;
 using ChatApp.Chat.Features.CreateChat;
 using ChatApp.Chat.Features.GetChatMessages;
 using ChatApp.Chat.Features.GetUserChats;
-using ChatApp.Chat.Infrastructure.Hubs;
+using ChatApp.Chat.Features.SendMessage;
 
 namespace ChatApp.Chat.Api.Endpoints;
 
 public static class ChatEndpoints
 {
-    public static IEndpointRouteBuilder MapChatEndpoints(this IEndpointRouteBuilder app)
+    public static RouteGroupBuilder MapChatEndpoints(this RouteGroupBuilder group)
     {
-        var group = app.MapGroup("/chat").WithTags("Chat");
-
-        group.MapHub<ChatHub>("/hub").WithSummary("SignalR Chat Hub").RequireAuthorization(); // TODO: remove this from here
-
         group
             .MapPost("/create", ChatCreateRoute)
             .WithName("CreateChat")
             .WithSummary("Create a new chat")
+            .RequireAuthorization();
+
+        group
+            .MapPost("/message", SendMessageRoute)
+            .WithName("SendMessage")
+            .WithSummary("Send a message")
             .RequireAuthorization();
 
         // app.MapMethods("/search", ["QUERY"], (SearchFilter filter) =>
@@ -112,6 +114,24 @@ public static class ChatEndpoints
     }
 
     // TODO: implement that
-    private static async Task<IResult> SendMessageRoute() =>
-        Results.Json(data: new { message = "I'm a teapot" }, statusCode: 418);
+    private static async Task<IResult> SendMessageRoute(
+        Guid chatId,
+        string content,
+        SendMessageHandler handler,
+        ClaimsPrincipal claims,
+        CancellationToken ct
+    )
+    {
+        var userId = claims.GetUserId();
+
+        if (userId == null)
+            return Results.Unauthorized();
+
+        var query = new SendMessageCommand(chatId, userId.Value, content);
+        var result = await handler.Handle(query, ct);
+
+        // TODO: call hub
+
+        return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
+    }
 }

@@ -1,4 +1,4 @@
-namespace ChatApp.Chat.Infrastructure.Hubs;
+namespace ChatApp.Chat.Api.Hubs;
 
 // seems to be deprecated
 internal static class SignalRGroups

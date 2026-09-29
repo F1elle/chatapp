@@ -4,7 +4,7 @@ using ChatApp.Chat.Features.SuspendChat;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace ChatApp.Chat.Infrastructure.Hubs;
+namespace ChatApp.Chat.Api.Hubs;
 
 // TODO: exception handlers
 // TODO: handle multiple devices connection

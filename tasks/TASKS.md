@@ -1,10 +1,10 @@
 ## scope
 - [x] SendMessage
 - [x] SendMessage fixes
+- [] signalr hub - groups, backplane
 - [] Endpoints
     - [] send message endpoint
     - [] remove hub registration from ChatEndpoints
-- [] signalr hub
 - [] db schema
 
 ## plans

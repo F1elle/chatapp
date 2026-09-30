@@ -15,13 +15,11 @@ public sealed class ChatAccessService : IChatAccessService
 
     public async Task<Guid?> GetParticipantIdAsync(Guid userId, Guid chatId, CancellationToken ct)
     {
-        var chatParticipant = await _dbContext.ChatParticipants
-            .Where(cp => cp.ChatId == chatId && cp.UserId == userId)
+        var chatParticipant = await _dbContext
+            .ChatParticipants.Where(cp => cp.ChatId == chatId && cp.UserId == userId)
             .Select(cp => cp.Id)
-            .FirstOrDefaultAsync(); 
+            .FirstOrDefaultAsync(ct);
 
-        return chatParticipant == Guid.Empty
-            ? null
-            : chatParticipant;
+        return chatParticipant == Guid.Empty ? null : chatParticipant;
     }
 }

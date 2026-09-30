@@ -12,7 +12,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.HasKey(m => m.Id);
 
-        builder.HasIndex(m => new { m.ChatId, m.SentAt });
+        // builder.HasIndex(m => new { m.ChatId, m.SentAt }); TODO: index
 
         builder.Property(m => m.SentAt).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
         builder.Property(m => m.Content).HasMaxLength(4096);
@@ -20,7 +20,11 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.Property(m => m.AttachmentIds).HasColumnType("uuid[]");
 
-        builder.HasOne(m => m.Sender).WithMany().HasForeignKey(m => m.SenderId);
+        builder
+            .HasOne<Domain.Chat>()
+            .WithMany()
+            .HasForeignKey(m => m.ChatId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Ignore(m => m.IsEdited);
         // builder.Ignore(m => m.IsRead);

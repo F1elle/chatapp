@@ -1,4 +1,3 @@
-using System.Data.Common;
 using ChatApp.Chat.Features.Abstractions;
 using StackExchange.Redis;
 
@@ -13,7 +12,6 @@ public class RedisChatPresenceService : IChatPresenceService
         _redis = redis;
     }
 
-    
     public async Task<HashSet<Guid>> GetActiveParticipantsAsync(Guid chatId, CancellationToken ct)
     {
         var db = _redis.GetDatabase();
@@ -29,9 +27,9 @@ public class RedisChatPresenceService : IChatPresenceService
         return activeParticipants;
     }
 
-    public Task MarkActiveAsync(Guid chatId, Guid userId, CancellationToken ct)
-        => _redis.GetDatabase().SetAddAsync(RedisKeys.ChatActive(chatId), userId.ToString());
+    public Task MarkActiveAsync(Guid chatId, Guid userId, CancellationToken ct) =>
+        _redis.GetDatabase().SetAddAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 
-    public Task MarkInactiveAsync(Guid chatId, Guid userId, CancellationToken ct)
-        => _redis.GetDatabase().SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
+    public Task MarkInactiveAsync(Guid chatId, Guid userId, CancellationToken ct) =>
+        _redis.GetDatabase().SetRemoveAsync(RedisKeys.ChatActive(chatId), userId.ToString());
 }

@@ -47,7 +47,7 @@ public static class ChatEndpoints
             .WithSummary("Returns paged messages from the chat")
             .RequireAuthorization();
 
-        return app;
+        return group;
     }
 
     private static async Task<IResult> ChatCreateRoute(

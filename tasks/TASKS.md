@@ -1,6 +1,7 @@
 ## scope
 - [x] SendMessage
 - [x] SendMessage fixes
+- [ ] direct chat
 - [ ] signalr hub - groups, backplane
 - [ ] user - usersnapshot sync, rabbitmq
 - [ ] Endpoints

@@ -11,6 +11,8 @@ public class Chat
     // Either Chat name or UserSnapshot name depending on the type
     public string? Name { get; private set; } = null;
 
+    public Guid? GroupPictureId { get; set; } = null;
+
     public Guid? CreatedBy { get; init; }
     public DateTime CreatedAt { get; init; }
     private Message? _lastMessage { get; set; }

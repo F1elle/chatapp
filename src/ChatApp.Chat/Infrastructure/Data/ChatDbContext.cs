@@ -12,6 +12,7 @@ public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new ChatParticipantConfiguration());
         modelBuilder.ApplyConfiguration(new UserProfileSnapshotConfiguration());
+        modelBuilder.ApplyConfiguration(new DirectChatLookupConfiguration());
 
         // modelBuilder.ApplyConfigurationsFromAssembly(typeof(ChatDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
@@ -21,5 +22,6 @@ public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(
     public DbSet<Message> Messages { get; set; }
     public DbSet<Domain.Chat> Chats { get; set; }
     public DbSet<UserProfileSnapshot> UserProfileSnapshots { get; set; }
+    public DbSet<DirectChatLookup> DirectChatLookups { get; set; }
     // public DbSet<MessageSeen> MessageSeens { get; set; }
 }

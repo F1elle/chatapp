@@ -8,11 +8,8 @@ public static class UserErrorExtensions
     {
         return userError switch
         {
-            UserError.UserNotFound => Results.Json(
-                data: new { message = "User not found" },
-                statusCode: 404
-            ),
-            _ => Results.Json(data: new { message = "Unknown error" }, statusCode: 500),
+            UserError.UserNotFound => Results.Problem(detail: "User not found", statusCode: 404),
+            _ => Results.Problem(detail: "Unknown error", statusCode: 500),
         };
     }
 }

@@ -8,27 +8,21 @@ public static class ChatErrorExtensions
     {
         return chatError switch
         {
-            ChatError.FailedCreatingChat => Results.Json(
-                data: new { message = "Failed creating chat" },
+            ChatError.FailedCreatingChat => Results.Problem(
+                detail: "Failed creating chat",
                 statusCode: 400
-            ), // TODO: find proper code
-            ChatError.EmptyParticipantList => Results.Json(
-                data: new { message = "No participants selected" },
+            ),
+            ChatError.EmptyParticipantList => Results.Problem(
+                detail: "No participants selected",
                 statusCode: 400
-            ), // ("No participants selected", 400),
-            ChatError.ChatNotFound => Results.Json(
-                data: new { message = "Chat not found" },
-                statusCode: 404
-            ), // ("Chat not found", 404),
-            ChatError.NotGroupChat => Results.Json(
-                data: new { message = "Not a group chat" },
+            ),
+            ChatError.ChatNotFound => Results.Problem(detail: "Chat not found", statusCode: 404),
+            ChatError.NotGroupChat => Results.Problem(detail: "Not a group chat", statusCode: 400),
+            ChatError.InvalidMessage => Results.Problem(
+                detail: "Invalid message format",
                 statusCode: 400
-            ), // ("Not a group chat", 400),
-            ChatError.InvalidMessage => Results.Json(
-                data: new { message = "Invalid message format" },
-                statusCode: 400
-            ), // ("Invalid message format", 400),
-            _ => Results.Json(data: new { message = "Unknown error" }, statusCode: 500),
+            ),
+            _ => Results.Problem(detail: "Unknown error", statusCode: 500),
         };
     }
 }

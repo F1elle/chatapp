@@ -1,3 +1,4 @@
+using ChatApp.Auth.Features.Common;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;

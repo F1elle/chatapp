@@ -1,5 +1,5 @@
 using System.Text.Json;
-using ChatApp.Auth.Features;
+using ChatApp.Auth.Api;
 using ChatApp.Auth.Infrastructure.Data;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,5 @@
 using ChatApp.Auth.Domain;
+using ChatApp.Auth.Features.Common;
 using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
 using ChatApp.Common.Abstractions;

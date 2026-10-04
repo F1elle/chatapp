@@ -1,9 +1,12 @@
+## priority
+- [ ] problemdetails
+- [ ] direct chat
+- [ ] user - usersnapshot sync, rabbitmq
+
 ## scope
 - [x] SendMessage
 - [x] SendMessage fixes
-- [ ] direct chat
 - [ ] signalr hub - groups, backplane
-- [ ] user - usersnapshot sync, rabbitmq
 - [ ] Endpoints
     - [x] send message endpoint
     - [x] remove hub registration from ChatEndpoints

@@ -2,7 +2,7 @@ using ChatApp.Chat.Features.Common;
 
 namespace ChatApp.Chat.Api.Extensions;
 
-public static class ChatErrorExtension
+public static class ChatErrorExtensions
 {
     public static IResult ToHttpResult(this ChatError chatError)
     {
@@ -28,7 +28,7 @@ public static class ChatErrorExtension
                 data: new { message = "Invalid message format" },
                 statusCode: 400
             ), // ("Invalid message format", 400),
-            _ => Results.Json(data: new { message = "Unknown error" }, statusCode: 500), // ("Unknown error", 500),
+            _ => Results.Json(data: new { message = "Unknown error" }, statusCode: 500),
         };
     }
 }

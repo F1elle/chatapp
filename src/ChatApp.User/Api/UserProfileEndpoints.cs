@@ -1,31 +1,29 @@
 using ChatApp.User.Features.GetUserProfile;
 
-namespace ChatApp.User.Features;
+namespace ChatApp.User.Api;
 
 public static class UserEndpoints
 {
     public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/user")
-            .WithTags("UserProfiles");
+        var group = app.MapGroup("/user").WithTags("UserProfiles");
 
-        group.MapGet("/{id}", GetUserProfileRoute)
+        group
+            .MapGet("/{id}", GetUserProfileRoute)
             .WithName("GetUserProfile")
             .RequireAuthorization();
 
         return app;
     }
-    
+
     private static async Task<IResult> GetUserProfileRoute(
         Guid id,
         GetUserProfileHandler handler,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var result = await handler.Handle(new GetUserProfileRequest(id), ct);
 
-        return result.IsSuccess
-            ? Results.Ok(result.Value)
-            : Results.NotFound();
+        return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
     }
-
 }

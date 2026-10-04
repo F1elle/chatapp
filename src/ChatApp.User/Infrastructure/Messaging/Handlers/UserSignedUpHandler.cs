@@ -44,7 +44,7 @@ public class UserSignedUpHandler : IHandleMessages<UserSignedUpEvent>
                     message.UserId,
                     result.Error
                 );
-                throw new Exception(result.Error.Code);
+                throw new Exception(result.Error.ToString()); // TODO: not sure about this
             }
         }
         catch (Exception ex)

@@ -3,7 +3,7 @@ using ChatApp.Auth.Features.SignUp;
 using ChatApp.Auth.Features.TokenRefresh;
 using ChatApp.Auth.Features.TokenRevoke;
 
-namespace ChatApp.Auth.Features;
+namespace ChatApp.Auth.Api;
 
 // TODO: private ToResult method using AuthError. Now the logic is a bit broken
 

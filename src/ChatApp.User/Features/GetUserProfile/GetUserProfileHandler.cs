@@ -1,4 +1,5 @@
 using ChatApp.Common.Abstractions;
+using ChatApp.User.Features.Common;
 using ChatApp.User.Infrastructure.Data;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;

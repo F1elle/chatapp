@@ -1,5 +1,5 @@
 using System.Text.Json;
-using ChatApp.User.Features;
+using ChatApp.User.Api;
 using ChatApp.User.Infrastructure.Data;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -17,24 +17,29 @@ public static class ConfigureApp
 
         app.MapUserEndpoints();
 
-        app.MapHealthChecks("/health", new HealthCheckOptions
-        {
-            ResponseWriter = async (context, report) =>
+        app.MapHealthChecks(
+            "/health",
+            new HealthCheckOptions
             {
-                context.Response.ContentType = "application/json";
-                var result = JsonSerializer.Serialize(new
+                ResponseWriter = async (context, report) =>
                 {
-                    status = report.Status.ToString(),
-                    results = report.Entries.Select(e => new
-                    {
-                        key = e.Key,
-                        status = e.Value.Status.ToString(),
-                        description = e.Value.Description
-                    })
-                });
-                await context.Response.WriteAsync(result);
+                    context.Response.ContentType = "application/json";
+                    var result = JsonSerializer.Serialize(
+                        new
+                        {
+                            status = report.Status.ToString(),
+                            results = report.Entries.Select(e => new
+                            {
+                                key = e.Key,
+                                status = e.Value.Status.ToString(),
+                                description = e.Value.Description,
+                            }),
+                        }
+                    );
+                    await context.Response.WriteAsync(result);
+                },
             }
-        });
+        );
 
         await app.MigrateDb();
     }

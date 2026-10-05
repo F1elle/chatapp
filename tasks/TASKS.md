@@ -1,6 +1,6 @@
 ## priority
-- [x] problemdetails
-    - [ ] register problemdetails
+- [ ] outbox
+- [ ] user profile updated message
 - [ ] direct chat
 - [ ] user - usersnapshot sync, rabbitmq
 
@@ -21,3 +21,5 @@
 - [x] SendMessage
 - [x] SendMessage fixes
 - [x] db schema
+- [x] problemdetails
+    - [x] register problemdetails

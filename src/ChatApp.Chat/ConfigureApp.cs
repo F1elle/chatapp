@@ -13,6 +13,8 @@ public static class ConfigureApp
     {
         app.UseExceptionHandler();
 
+        app.UseStatusCodePages();
+
         app.UseCors();
 
         app.UseAuthentication();

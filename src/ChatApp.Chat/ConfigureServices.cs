@@ -23,6 +23,7 @@ public static class ConfigureServices
                     "requestId",
                     context.HttpContext.TraceIdentifier
                 );
+                context.ProblemDetails.Extensions["serverTime"] = DateTime.UtcNow;
             };
         });
 

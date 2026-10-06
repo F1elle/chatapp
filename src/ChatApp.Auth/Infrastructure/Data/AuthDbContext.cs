@@ -1,4 +1,6 @@
 using ChatApp.Auth.Domain;
+using ChatApp.Common.Infrastructure.Outbox;
+using ChatApp.Common.Infrastructure.Outbox.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Auth.Infrastructure.Data;
@@ -8,9 +10,11 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
+        modelBuilder.ApplyOutboxConfiguration();
         base.OnModelCreating(modelBuilder);
     }
 
     public DbSet<UserAuth> UserAuth { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 }

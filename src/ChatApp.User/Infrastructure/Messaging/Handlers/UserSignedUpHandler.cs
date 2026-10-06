@@ -37,15 +37,6 @@ public class UserSignedUpHandler : IHandleMessages<UserSignedUpEvent>
             {
                 _logger.LogInformation("Profile created for user {UserId}", message.UserId);
             }
-            else
-            {
-                _logger.LogError(
-                    "Failed to create profile for user {UserId}: {Error}",
-                    message.UserId,
-                    result.Error
-                );
-                throw new Exception(result.Error.ToString()); // TODO: not sure about this
-            }
         }
         catch (Exception ex)
         {

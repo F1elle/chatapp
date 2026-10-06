@@ -5,6 +5,7 @@ using ChatApp.Auth.Infrastructure.Messaging;
 using ChatApp.Auth.Infrastructure.Security;
 using ChatApp.Common.Extensions;
 using ChatApp.Common.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Outbox.Extensions;
 using ChatApp.Common.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -111,7 +112,7 @@ public static class ConfigureServices
                 .Transport(t =>
                     t.UseRabbitMqAsOneWayClient(connectionString: rabbitMqOptions!.ConnectionString)
                 )
-                .Routing(r => r.TypeBased().Map<UserSignedUpEvent>(rabbitMqOptions!.Routing))
+                .Routing(r => r.TypeBased())
                 .Options(o =>
                 {
                     o.SetMaxParallelism(1);
@@ -141,5 +142,7 @@ public static class ConfigureServices
                 timeout: TimeSpan.FromSeconds(5),
                 tags: new[] { "messaging", "rabbitmq" }
             );
+
+        builder.Services.AddOutbox<AuthDbContext>(typeof(UserSignedUpEvent));
     }
 }

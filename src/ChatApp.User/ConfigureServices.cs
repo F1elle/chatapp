@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using Rebus.Config;
 using Rebus.Retry.Simple;
+using Rebus.Routing.TypeBased;
 
 namespace ChatApp.User;
 
@@ -100,8 +101,6 @@ public static class ConfigureServices
             .Configuration.GetSection(RabbitMqOptions.SectionName)
             .Get<RabbitMqOptions>();
 
-        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
-
         builder.Services.AddRebus(configure =>
             configure
                 .Transport(t =>
@@ -110,6 +109,7 @@ public static class ConfigureServices
                         inputQueueName: rabbitMqOptions!.InputQueueName
                     )
                 )
+                .Routing(r => r.TypeBased())
                 .Options(o =>
                 {
                     o.RetryStrategy(maxDeliveryAttempts: 3, secondLevelRetriesEnabled: true);
@@ -118,6 +118,8 @@ public static class ConfigureServices
                     o.SetMaxParallelism(1);
                 })
         );
+
+        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserSignedUpHandler>();
 
         builder.Services.AddSingleton<IConnection>(sp =>
         {

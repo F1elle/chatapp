@@ -1,5 +1,8 @@
 ## priority
 - [ ] outbox
+    - [x] add outbox bus
+    - [x] handle message duplication in message handler
+    - [ ] add outbox to user service
 - [ ] user profile updated message
 - [ ] direct chat
 - [ ] user - usersnapshot sync, rabbitmq
@@ -23,3 +26,4 @@
 - [x] db schema
 - [x] problemdetails
     - [x] register problemdetails
+- [x] user signed up

@@ -1,8 +1,10 @@
 using System.Text.Json;
+using ChatApp.Common.Infrastructure.Messaging.Events;
 using ChatApp.User.Api;
 using ChatApp.User.Infrastructure.Data;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Rebus.Bus;
 
 namespace ChatApp.User;
 
@@ -43,6 +45,9 @@ public static class ConfigureApp
         );
 
         await app.MigrateDb();
+
+        var bus = app.Services.GetRequiredService<IBus>();
+        await bus.Subscribe<UserSignedUpEvent>();
     }
 
     private static async Task MigrateDb(this WebApplication app)

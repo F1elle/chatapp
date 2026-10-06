@@ -4,9 +4,9 @@ using ChatApp.Auth.Infrastructure.Data;
 using ChatApp.Auth.Infrastructure.Security;
 using ChatApp.Common.Abstractions;
 using ChatApp.Common.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Outbox;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using Rebus.Bus;
 
 namespace ChatApp.Auth.Features.SignUp;
 
@@ -14,13 +14,17 @@ public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse, Auth
 {
     private readonly AuthDbContext _dbContext;
     private readonly PasswordHasher _passwordHasher;
-    private readonly IBus _bus;
+    private readonly IOutboxWriter _outboxWriter;
 
-    public SignUpHandler(AuthDbContext dbContext, PasswordHasher passwordHasher, IBus bus)
+    public SignUpHandler(
+        AuthDbContext dbContext,
+        PasswordHasher passwordHasher,
+        IOutboxWriter outboxWriter
+    )
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
-        _bus = bus;
+        _outboxWriter = outboxWriter;
     }
 
     public async Task<Result<SignUpResponse, AuthError>> Handle(
@@ -41,9 +45,7 @@ public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse, Auth
 
         userAuth.Add(createdUserAuth);
 
-        await _dbContext.SaveChangesAsync(ct);
-
-        await _bus.Send(
+        _outboxWriter.Enqueue(
             new UserSignedUpEvent(
                 UserId: createdUserAuth.Id,
                 Email: request.Email,
@@ -51,6 +53,8 @@ public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse, Auth
                 SignedUpAt: createdUserAuth.CreatedAt
             )
         );
+
+        await _dbContext.SaveChangesAsync(ct);
 
         return new SignUpResponse(createdUserAuth.Id);
     }

@@ -3,10 +3,16 @@ using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Redis;
 using ChatApp.Chat.Infrastructure.Security;
+using ChatApp.Common.Infrastructure.Messaging.Events;
 using ChatApp.Common.Middleware;
+using ChatApp.User.Infrastructure.Messaging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RabbitMQ.Client;
+using Rebus.Config;
+using Rebus.Retry.Simple;
+using Rebus.Routing.TypeBased;
 using StackExchange.Redis;
 
 namespace ChatApp.Chat;
@@ -114,6 +120,39 @@ public static class ConfigureServices
         // builder.Services.AddHandlers(Assembly.GetExecutingAssembly());
         builder.Services.AutoRegisterFromChatAppChat();
 
+        var rabbitMqOptions = builder
+            .Configuration.GetSection(RabbitMqOptions.SectionName)
+            .Get<RabbitMqOptions>();
+
+        builder.Services.AddRebus(configure =>
+            configure
+                .Transport(t =>
+                    t.UseRabbitMq(
+                        connectionString: rabbitMqOptions!.ConnectionString,
+                        inputQueueName: rabbitMqOptions!.InputQueueName
+                    )
+                )
+                .Routing(r => r.TypeBased())
+                .Options(o =>
+                {
+                    o.RetryStrategy(maxDeliveryAttempts: 3, secondLevelRetriesEnabled: true);
+
+                    o.SetNumberOfWorkers(1);
+                    o.SetMaxParallelism(1);
+                })
+        );
+
+        builder.Services.AutoRegisterHandlersFromAssemblyOf<UserProfileUpdatedEvent>();
+
+        builder.Services.AddSingleton<IConnection>(sp =>
+        {
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(rabbitMqOptions!.ConnectionString),
+            };
+            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        });
+
         builder
             .Services.AddHealthChecks()
             .AddNpgSql(
@@ -127,6 +166,11 @@ public static class ConfigureServices
                 name: "Redis",
                 timeout: TimeSpan.FromSeconds(5),
                 tags: new[] { "db", "redis" }
+            )
+            .AddRabbitMQ(
+                name: "RabbitMQ",
+                timeout: TimeSpan.FromSeconds(5),
+                tags: new[] { "messaging", "rabbitmq" }
             );
 
         builder.Services.AddSignalR();

@@ -1,14 +1,9 @@
 ## priority
-- [ ] outbox
-    - [x] add outbox bus
-    - [x] handle message duplication in message handler
-    - [ ] add outbox to user service
-- [ ] user profile updated message
 - [ ] direct chat
-- [ ] user - usersnapshot sync, rabbitmq
 
 ## scope
-- [ ] signalr hub - groups, backplane
+- [ ] move all the servies to autoinject
+- [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 - [ ] Endpoints
     - [x] send message endpoint
     - [x] remove hub registration from ChatEndpoints
@@ -17,13 +12,20 @@
 ## plans
 - [ ] leave chat
 - [ ] media
-- [ ] Rebus for rabbitmq (already installed; set it up)
 - [ ] indexes
+- [ ] update user profile
 
 ## done
+- [x] user - usersnapshot sync, rabbitmq
+- [x] Rebus for rabbitmq (already installed; set it up)
+- [x] user profile updated message
 - [x] SendMessage
 - [x] SendMessage fixes
 - [x] db schema
 - [x] problemdetails
     - [x] register problemdetails
 - [x] user signed up
+- [x] outbox
+    - [x] handle message duplication in message handler
+    - [x] add outbox to user service
+    - [x] add outbox bus

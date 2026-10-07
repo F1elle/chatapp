@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text;
 using ChatApp.Common.Extensions;
+using ChatApp.Common.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Outbox.Extensions;
 using ChatApp.Common.Middleware;
 using ChatApp.User.Infrastructure.Data;
 using ChatApp.User.Infrastructure.Messaging;
@@ -143,5 +145,7 @@ public static class ConfigureServices
                 timeout: TimeSpan.FromSeconds(5),
                 tags: new[] { "messaging", "rabbitmq" }
             );
+
+        builder.Services.AddOutbox<UserDbContext>(typeof(UserProfileUpdatedEvent));
     }
 }

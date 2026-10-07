@@ -1,4 +1,6 @@
 using ChatApp.Common.Abstractions;
+using ChatApp.Common.Infrastructure.Messaging.Events;
+using ChatApp.Common.Infrastructure.Outbox;
 using ChatApp.User.Features.Common;
 using ChatApp.User.Infrastructure.Data;
 using CSharpFunctionalExtensions;
@@ -11,14 +13,17 @@ public class CreateUserProfileHandler
 {
     private readonly UserDbContext _dbContext;
     private readonly ILogger<CreateUserProfileHandler> _logger;
+    private readonly IOutboxWriter _outboxWriter;
 
     public CreateUserProfileHandler(
         UserDbContext dbContext,
+        IOutboxWriter outboxWriter,
         ILogger<CreateUserProfileHandler> logger
     )
     {
         _dbContext = dbContext;
         _logger = logger;
+        _outboxWriter = outboxWriter;
     }
 
     public async Task<Result<CreateUserProfileResponse, UserError>> Handle(
@@ -39,6 +44,14 @@ public class CreateUserProfileHandler
                 CreatedAt = request.CreatedAt,
                 UserTag = Guid.CreateVersion7().ToString(),
             }
+        );
+
+        _outboxWriter.Enqueue(
+            new UserProfileUpdatedEvent(
+                Id: request.Id,
+                DisplayName: request.DisplayName,
+                AvatarUrl: null
+            )
         );
 
         try

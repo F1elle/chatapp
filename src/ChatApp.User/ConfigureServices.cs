@@ -97,7 +97,7 @@ public static class ConfigureServices
 
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddHandlers(Assembly.GetExecutingAssembly());
+        builder.Services.AutoRegisterFromChatAppUser();
 
         var rabbitMqOptions = builder
             .Configuration.GetSection(RabbitMqOptions.SectionName)

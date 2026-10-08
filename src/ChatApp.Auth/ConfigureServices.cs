@@ -98,7 +98,7 @@ public static class ConfigureServices
         builder.Services.AddSingleton<TokenProvider>();
         builder.Services.AddSingleton<PasswordHasher>();
 
-        builder.Services.AddHandlers(Assembly.GetExecutingAssembly());
+        builder.Services.AutoRegisterFromChatAppAuth();
 
         var rabbitMqOptions = builder
             .Configuration.GetSection(RabbitMqOptions.SectionName)

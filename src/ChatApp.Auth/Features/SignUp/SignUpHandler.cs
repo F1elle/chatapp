@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Auth.Features.SignUp;
 
+[RegisterScoped]
 public class SignUpHandler : IHandler<SignUpRequest, Result<SignUpResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.User.Features.CreateUserProfile;
 
+[RegisterScoped]
 public class CreateUserProfileHandler
     : IHandler<CreateUserProfileRequest, Result<CreateUserProfileResponse, UserError>>
 {

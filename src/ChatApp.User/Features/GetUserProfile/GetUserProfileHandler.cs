@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.User.Features.GetUserProfile;
 
+[RegisterScoped]
 public class GetUserProfileHandler
     : IHandler<GetUserProfileRequest, Result<GetUserProfileResponse, UserError>>
 {

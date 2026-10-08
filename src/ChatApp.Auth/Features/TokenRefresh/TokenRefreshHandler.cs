@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.TokenRefresh;
 
+[RegisterScoped]
 public class TokenRefreshHandler
     : IHandler<TokenRefreshRequest, Result<TokenRefreshResponse, AuthError>>
 {

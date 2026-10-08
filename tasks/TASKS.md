@@ -2,7 +2,6 @@
 - [ ] direct chat
 
 ## scope
-- [ ] move all the servies to autoinject
 - [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 - [ ] Endpoints
     - [x] send message endpoint
@@ -16,6 +15,7 @@
 - [ ] update user profile
 
 ## done
+- [x] move all the servies to autoinject
 - [x] user - usersnapshot sync, rabbitmq
 - [x] Rebus for rabbitmq (already installed; set it up)
 - [x] user profile updated message

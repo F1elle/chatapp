@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChatApp.Auth.Features.SignIn;
 
+[RegisterScoped]
 public class SignInHandler : IHandler<SignInRequest, Result<SignInResponse, AuthError>>
 {
     private readonly AuthDbContext _dbContext;

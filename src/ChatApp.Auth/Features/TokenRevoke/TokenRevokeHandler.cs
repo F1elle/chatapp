@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Auth.Features.TokenRevoke;
 
+[RegisterScoped]
 public class TokenRevokeHandler
     : IHandler<TokenRevokeRequest, Result<TokenRevokeResponse, AuthError>>
 {

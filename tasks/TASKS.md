@@ -1,8 +1,8 @@
 ## priority
-- [ ] direct chat
+- [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 
 ## scope
-- [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
+- [ ] direct chat
 - [ ] Endpoints
     - [x] send message endpoint
     - [x] remove hub registration from ChatEndpoints

@@ -32,6 +32,31 @@ public class ChatHub : Hub<IChatClient>
         await base.OnConnectedAsync();
     }
 
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = TryGetUserId();
+
+        if (userId is null)
+        {
+            await base.OnDisconnectedAsync(exception);
+            return;
+        }
+
+        var openChats = GetTrackedChats();
+
+        foreach (var chatId in openChats)
+        {
+            await _suspendChatHandler.Handle(
+                new SuspendChatRequest(chatId, userId.Value),
+                CancellationToken.None
+            );
+        }
+
+        _logger.LogInformation("User {UserId} disconnected", userId);
+
+        await base.OnDisconnectedAsync(exception);
+    }
+
     // public async Task<Guid> OpenChat(Guid chatId)
     // {
     //     var userId = GetUserId();
@@ -126,58 +151,34 @@ public class ChatHub : Hub<IChatClient>
     //     );
     // }
 
-    // public override async Task OnDisconnectedAsync(Exception? exception)
-    // {
-    //     var userId = TryGetUserId();
-    //
-    //     if (userId is null)
-    //     {
-    //         await base.OnDisconnectedAsync(exception);
-    //         return;
-    //     }
-    //
-    //     var openChats = GetTrackedChats();
-    //
-    //     foreach (var chatId in openChats)
-    //     {
-    //         await _suspendChatHandler.Handle(
-    //             new SuspendChatRequest(chatId, userId.Value),
-    //             CancellationToken.None
-    //         );
-    //     }
-    //
-    //     _logger.LogInformation("User {UserId} disconnected", userId);
-    //
-    //     await base.OnDisconnectedAsync(exception);
-    // }
 
-    private void TrackOpenChat(Guid chatId)
-    {
-        if (!Context.Items.ContainsKey("OpenChats"))
-            Context.Items["OpenChats"] = new HashSet<Guid>();
-
-        (Context.Items["OpenChats"] as HashSet<Guid>)!.Add(chatId);
-    }
-
-    private void UntrackOpenChat(Guid chatId)
-    {
-        if (
-            Context.Items.TryGetValue("OpenChats", out var value)
-            && value is HashSet<Guid> openChats
-        )
-        {
-            openChats.Remove(chatId);
-        }
-    }
-
-    private HashSet<Guid> GetTrackedChats()
-    {
-        return
-            Context.Items.TryGetValue("OpenChats", out var value)
-            && value is HashSet<Guid> trackedChats
-            ? trackedChats
-            : new HashSet<Guid>();
-    }
+//     private void TrackOpenChat(Guid chatId)
+//     {
+//         if (!Context.Items.ContainsKey("OpenChats"))
+//             Context.Items["OpenChats"] = new HashSet<Guid>();
+//
+//         (Context.Items["OpenChats"] as HashSet<Guid>)!.Add(chatId);
+//     }
+//
+//     private void UntrackOpenChat(Guid chatId)
+//     {
+//         if (
+//             Context.Items.TryGetValue("OpenChats", out var value)
+//             && value is HashSet<Guid> openChats
+//         )
+//         {
+//             openChats.Remove(chatId);
+//         }
+//     }
+//
+//     private HashSet<Guid> GetTrackedChats()
+//     {
+//         return
+//             Context.Items.TryGetValue("OpenChats", out var value)
+//             && value is HashSet<Guid> trackedChats
+//             ? trackedChats
+//             : new HashSet<Guid>();
+//     }
 
     private Guid GetUserId()
     {

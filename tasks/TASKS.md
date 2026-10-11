@@ -1,4 +1,5 @@
 ## priority
+- [ ] FIX: cursor in GetUserChatsRoute cannot work properly with GET method
 - [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 
 ## scope
@@ -9,12 +10,14 @@
     - [ ] finish the rest
 
 ## plans
+- [ ] create message id on front end in roder to handle message send retries
 - [ ] leave chat
 - [ ] media
 - [ ] indexes
 - [ ] update user profile
 
 ## done
+- [x] FIX: chatId, string content in SendMessageRoute are taken from query
 - [x] move all the servies to autoinject
 - [x] user - usersnapshot sync, rabbitmq
 - [x] Rebus for rabbitmq (already installed; set it up)

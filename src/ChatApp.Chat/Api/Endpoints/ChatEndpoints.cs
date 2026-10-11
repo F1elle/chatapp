@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ChatApp.Chat.Api.Extensions;
+using ChatApp.Chat.Api.Hubs;
 using ChatApp.Chat.Common.Extensions;
 using ChatApp.Chat.Features.CreateChat;
 using ChatApp.Chat.Features.GetChatMessages;
@@ -113,12 +114,12 @@ public static class ChatEndpoints
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 
-    // TODO: implement that
     private static async Task<IResult> SendMessageRoute(
         Guid chatId,
-        string content,
+        SendMessageRequest request,
         SendMessageHandler handler,
         ClaimsPrincipal claims,
+        IChatNotifier chatNotifier,
         CancellationToken ct
     )
     {
@@ -127,11 +128,14 @@ public static class ChatEndpoints
         if (userId == null)
             return Results.Unauthorized();
 
-        var query = new SendMessageCommand(chatId, userId.Value, content);
+        var query = new SendMessageCommand(chatId, userId.Value, request.Content);
         var result = await handler.Handle(query, ct);
 
-        // TODO: call hub
+        if (result.IsSuccess)
+            await chatNotifier.NotifyNewMessage(chatId, result.Value, ct);
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 }
+
+public sealed record SendMessageRequest(string Content);

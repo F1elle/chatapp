@@ -1,6 +1,7 @@
-using ChatApp.Chat.Features.SendMessage;
+using ChatApp.Chat.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Chat.Api.Hubs;
 
@@ -13,19 +14,30 @@ namespace ChatApp.Chat.Api.Hubs;
 public class ChatHub : Hub<IChatClient>
 {
     private readonly ILogger<ChatHub> _logger;
-    private readonly SendMessageHandler _sendMessageHandler;
+    private readonly ChatDbContext _dbContext;
 
-    public ChatHub(ILogger<ChatHub> logger, SendMessageHandler sendMessageHandler)
+    public ChatHub(ILogger<ChatHub> logger, ChatDbContext dbContext)
     {
         _logger = logger;
-        _sendMessageHandler = sendMessageHandler;
+        _dbContext = dbContext;
     }
 
     public override async Task OnConnectedAsync()
     {
+        CancellationToken ct = Context.ConnectionAborted;
+
         var userId = GetUserId();
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.UserGroup(userId));
+        var chatIds = await _dbContext
+            .ChatParticipants.Where(cp => cp.UserId == userId)
+            .Select(cp => cp.ChatId)
+            .ToListAsync(ct);
+
+        var tasks = chatIds.Select(id =>
+            Groups.AddToGroupAsync(Context.ConnectionId, SignalRGroups.ChatGroup(id), ct)
+        );
+
+        await Task.WhenAll(tasks);
 
         _logger.LogInformation("User {UserId} connected", userId);
 
@@ -40,16 +52,6 @@ public class ChatHub : Hub<IChatClient>
         {
             await base.OnDisconnectedAsync(exception);
             return;
-        }
-
-        var openChats = GetTrackedChats();
-
-        foreach (var chatId in openChats)
-        {
-            await _suspendChatHandler.Handle(
-                new SuspendChatRequest(chatId, userId.Value),
-                CancellationToken.None
-            );
         }
 
         _logger.LogInformation("User {UserId} disconnected", userId);
@@ -151,34 +153,33 @@ public class ChatHub : Hub<IChatClient>
     //     );
     // }
 
-
-//     private void TrackOpenChat(Guid chatId)
-//     {
-//         if (!Context.Items.ContainsKey("OpenChats"))
-//             Context.Items["OpenChats"] = new HashSet<Guid>();
-//
-//         (Context.Items["OpenChats"] as HashSet<Guid>)!.Add(chatId);
-//     }
-//
-//     private void UntrackOpenChat(Guid chatId)
-//     {
-//         if (
-//             Context.Items.TryGetValue("OpenChats", out var value)
-//             && value is HashSet<Guid> openChats
-//         )
-//         {
-//             openChats.Remove(chatId);
-//         }
-//     }
-//
-//     private HashSet<Guid> GetTrackedChats()
-//     {
-//         return
-//             Context.Items.TryGetValue("OpenChats", out var value)
-//             && value is HashSet<Guid> trackedChats
-//             ? trackedChats
-//             : new HashSet<Guid>();
-//     }
+    //     private void TrackOpenChat(Guid chatId)
+    //     {
+    //         if (!Context.Items.ContainsKey("OpenChats"))
+    //             Context.Items["OpenChats"] = new HashSet<Guid>();
+    //
+    //         (Context.Items["OpenChats"] as HashSet<Guid>)!.Add(chatId);
+    //     }
+    //
+    //     private void UntrackOpenChat(Guid chatId)
+    //     {
+    //         if (
+    //             Context.Items.TryGetValue("OpenChats", out var value)
+    //             && value is HashSet<Guid> openChats
+    //         )
+    //         {
+    //             openChats.Remove(chatId);
+    //         }
+    //     }
+    //
+    //     private HashSet<Guid> GetTrackedChats()
+    //     {
+    //         return
+    //             Context.Items.TryGetValue("OpenChats", out var value)
+    //             && value is HashSet<Guid> trackedChats
+    //             ? trackedChats
+    //             : new HashSet<Guid>();
+    //     }
 
     private Guid GetUserId()
     {

@@ -1,8 +1,8 @@
 namespace ChatApp.Chat.Features.GetChatMessages;
 
 public sealed record GetChatMessagesQuery(
-    Guid ChatId,
     Guid UserId,
+    Guid ChatId,
     Guid? Cursor = null,
     int PageSize = 20
 );

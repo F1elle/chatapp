@@ -1,6 +1,7 @@
 ## priority
-- [ ] FIX: cursor in GetUserChatsRoute cannot work properly with GET method
 - [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
+- [ ] record at the very bottom of ChatEndpoints
+- [ ] proper errors for endpoints (todo in GetUserChatsRoute)
 
 ## scope
 - [ ] direct chat
@@ -17,6 +18,8 @@
 - [ ] update user profile
 
 ## done
+- [x] FIX: cursor in GetUserChatsRoute cannot work properly with GET method
+- [x] N1: define dtos, use them in endpoints
 - [x] FIX: chatId, string content in SendMessageRoute are taken from query
 - [x] move all the servies to autoinject
 - [x] user - usersnapshot sync, rabbitmq

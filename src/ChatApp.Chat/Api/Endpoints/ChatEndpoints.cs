@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ChatApp.Chat.Api.Contracts;
 using ChatApp.Chat.Api.Extensions;
 using ChatApp.Chat.Api.Hubs;
 using ChatApp.Chat.Common.Extensions;
@@ -14,27 +15,16 @@ public static class ChatEndpoints
     public static RouteGroupBuilder MapChatEndpoints(this RouteGroupBuilder group)
     {
         group
-            .MapPost("/create", ChatCreateRoute)
+            .MapPost("/create", CreateChatRoute)
             .WithName("CreateChat")
             .WithSummary("Create a new chat")
             .RequireAuthorization();
 
         group
-            .MapPost("/message", SendMessageRoute)
+            .MapPost("/messages", SendMessageRoute)
             .WithName("SendMessage")
             .WithSummary("Send a message")
             .RequireAuthorization();
-
-        // app.MapMethods("/search", ["QUERY"], (SearchFilter filter) =>
-        // {
-        //     return Results.Ok();
-        // });
-
-        // group
-        //     .MapPost("/join", JoinChatRoute)
-        //     .WithName("JoinChat")
-        //     .WithSummary("Join an existing chat")
-        //     .RequireAuthorization();
 
         group
             .MapGet("/list", GetUserChatsRoute)
@@ -43,7 +33,7 @@ public static class ChatEndpoints
             .RequireAuthorization();
 
         group
-            .MapGet("/{chatId}/messages", GetChatMessagesRoute)
+            .MapGet("/messages", GetChatMessagesRoute)
             .WithName("GetChatMessages")
             .WithSummary("Returns paged messages from the chat")
             .RequireAuthorization();
@@ -51,33 +41,31 @@ public static class ChatEndpoints
         return group;
     }
 
-    private static async Task<IResult> ChatCreateRoute(
-        CreateChatCommand request,
+    private static async Task<IResult> CreateChatRoute(
+        CreateChatRequest request,
         CreateChatHandler handler,
+        ClaimsPrincipal claims,
         CancellationToken ct
     )
     {
-        var result = await handler.Handle(request, ct);
+        var userId = claims.GetUserId();
+
+        if (userId == null)
+            return Results.Unauthorized();
+
+        var command = new CreateChatCommand(
+            (Guid)userId,
+            request.Name,
+            request.ParticipantIds,
+            request.ChatType
+        );
+
+        var result = await handler.Handle(command, ct);
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 
-    // private static async Task<IResult> JoinChatRoute(
-    //     JoinChatRequest request,
-    //     JoinChatHandler handler,
-    //     CancellationToken ct
-    // )
-    // {
-    //     var result = await handler.Handle(request, ct);
-    //     if (!result.IsSuccess)
-    //     {
-    //         return Results.BadRequest(new { error = result.Error });
-    //     }
-    //     return Results.Ok(new { message = "Joined chat successfully." });
-    // }
-
     private static async Task<IResult> GetUserChatsRoute(
-        ChatListCursor? cursor,
-        int pageSize,
+        [AsParameters] GetUserChatsRequest request,
         GetUserChatsHandler handler,
         ClaimsPrincipal claims,
         CancellationToken ct
@@ -88,16 +76,26 @@ public static class ChatEndpoints
         if (userId == null)
             return Results.Unauthorized();
 
-        var query = new GetUserChatsQuery((Guid)userId, cursor, pageSize);
+        if ((request.LastUpdateAt is null) != (request.ChatId is null))
+            return Results.BadRequest("LastUpdateAt and ChatId must be provided together."); // TODO: proper errors
+
+        if (request.PageSize is < 1 or > 100)
+            return Results.BadRequest("PageSize must be between 1 and 100.");
+
+        ChatListCursor? cursor =
+            request.LastUpdateAt is not null && request.ChatId is not null
+                ? new ChatListCursor(request.LastUpdateAt.Value, request.ChatId.Value)
+                : null;
+
+        var query = new GetUserChatsQuery((Guid)userId, cursor, request.PageSize);
+
         var result = await handler.Handle(query, ct);
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 
     private static async Task<IResult> GetChatMessagesRoute(
-        Guid chatId,
-        Guid? cursor,
-        int pageSize,
+        GetChatMessagesRequest request,
         GetChatMessagesHandler handler,
         ClaimsPrincipal claims,
         CancellationToken ct
@@ -108,14 +106,19 @@ public static class ChatEndpoints
         if (userId == null)
             return Results.Unauthorized();
 
-        var query = new GetChatMessagesQuery(chatId, userId.Value, cursor, pageSize);
+        var query = new GetChatMessagesQuery(
+            (Guid)userId,
+            request.ChatId,
+            request.Cursor,
+            request.PageSize
+        );
+
         var result = await handler.Handle(query, ct);
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 
     private static async Task<IResult> SendMessageRoute(
-        Guid chatId,
         SendMessageRequest request,
         SendMessageHandler handler,
         ClaimsPrincipal claims,
@@ -128,14 +131,13 @@ public static class ChatEndpoints
         if (userId == null)
             return Results.Unauthorized();
 
-        var query = new SendMessageCommand(chatId, userId.Value, request.Content);
-        var result = await handler.Handle(query, ct);
+        var command = new SendMessageCommand((Guid)userId, request.ChatId, request.Content);
+
+        var result = await handler.Handle(command, ct);
 
         if (result.IsSuccess)
-            await chatNotifier.NotifyNewMessage(chatId, result.Value, ct);
+            await chatNotifier.NotifyNewMessage(request.ChatId, result.Value, ct);
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }
 }
-
-public sealed record SendMessageRequest(string Content);

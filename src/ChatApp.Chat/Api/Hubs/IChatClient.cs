@@ -1,9 +1,8 @@
-using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Chat.Api.Contracts;
 
 namespace ChatApp.Chat.Api.Hubs;
 
 public interface IChatClient
 {
-    public Task ReceiveMessage(MessageDto message);
-    public Task ReceiveSystemMessage(string message);
+    public Task ReceiveMessage(MessageResponse message);
 }

@@ -2,7 +2,6 @@ using System.Security.Claims;
 using ChatApp.Chat.Api.Contracts;
 using ChatApp.Chat.Api.Extensions;
 using ChatApp.Chat.Api.Hubs;
-using ChatApp.Chat.Common.Extensions;
 using ChatApp.Chat.Features.CreateChat;
 using ChatApp.Chat.Features.GetChatMessages;
 using ChatApp.Chat.Features.GetUserChats;
@@ -136,7 +135,11 @@ public static class ChatEndpoints
         var result = await handler.Handle(command, ct);
 
         if (result.IsSuccess)
-            await chatNotifier.NotifyNewMessage(request.ChatId, result.Value, ct);
+            await chatNotifier.NotifyNewMessage(
+                request.ChatId,
+                new MessageResponse(result.Value),
+                ct
+            );
 
         return result.IsSuccess ? Results.Ok(result.Value) : result.Error.ToHttpResult();
     }

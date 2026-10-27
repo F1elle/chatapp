@@ -1,6 +1,6 @@
-namespace ChatApp.Chat.Features.Abstractions;
+namespace ChatApp.Chat.Features.Common.Abstractions;
 
-public interface IChatAccessService 
+public interface IChatAccessService
 {
     Task<Guid?> GetParticipantIdAsync(Guid userId, Guid chatId, CancellationToken ct);
 }

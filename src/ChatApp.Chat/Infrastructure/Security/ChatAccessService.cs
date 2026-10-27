@@ -1,4 +1,4 @@
-using ChatApp.Chat.Features.Abstractions;
+using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

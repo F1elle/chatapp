@@ -1,6 +1,5 @@
-using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Features.Common;
-using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common;
 using ChatApp.Common.Abstractions;
@@ -12,7 +11,7 @@ namespace ChatApp.Chat.Features.GetChatMessages;
 
 [RegisterScoped]
 public class GetChatMessagesHandler
-    : IHandler<GetChatMessagesQuery, Result<PagedResult<MessageDto, Guid>, ChatError>>
+    : IHandler<GetChatMessagesQuery, Result<PagedResult<ChatMessageItem, Guid>, ChatError>>
 {
     private readonly ChatDbContext _dbContext;
     private readonly IChatAccessService _chatAccessService;
@@ -23,7 +22,7 @@ public class GetChatMessagesHandler
         _chatAccessService = chatAccessService;
     }
 
-    public async Task<Result<PagedResult<MessageDto, Guid>, ChatError>> Handle(
+    public async Task<Result<PagedResult<ChatMessageItem, Guid>, ChatError>> Handle(
         GetChatMessagesQuery query,
         CancellationToken ct
     )
@@ -51,7 +50,7 @@ public class GetChatMessagesHandler
 
         return await dbQuery.ToPagedResult(
             query.PageSize,
-            m => new MessageDto(
+            m => new ChatMessageItem(
                 m.Id,
                 m.SenderId,
                 m.Content,

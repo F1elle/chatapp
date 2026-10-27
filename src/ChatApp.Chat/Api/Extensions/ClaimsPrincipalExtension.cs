@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
-namespace ChatApp.Chat.Common.Extensions;
-
+namespace ChatApp.Chat.Api.Extensions;
 
 public static class ClaimsPrincipalExtension
 {
@@ -9,8 +8,6 @@ public static class ClaimsPrincipalExtension
     {
         var claim = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return claim is null
-            ? null
-            : Guid.Parse(claim);
+        return claim is null ? null : Guid.Parse(claim);
     }
 }

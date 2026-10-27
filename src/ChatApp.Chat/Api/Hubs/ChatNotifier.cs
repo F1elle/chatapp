@@ -1,4 +1,4 @@
-using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Chat.Api.Contracts;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Chat.Api.Hubs;
@@ -15,7 +15,7 @@ public class ChatNotifier : IChatNotifier
         _logger = logger;
     }
 
-    public async Task NotifyNewMessage(Guid chatId, MessageDto message, CancellationToken ct)
+    public async Task NotifyNewMessage(Guid chatId, MessageResponse message, CancellationToken ct)
     {
         try
         {

@@ -1,8 +1,8 @@
-using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Chat.Api.Contracts;
 
 namespace ChatApp.Chat.Api.Hubs;
 
 public interface IChatNotifier
 {
-    Task NotifyNewMessage(Guid chatId, MessageDto message, CancellationToken ct);
+    Task NotifyNewMessage(Guid chatId, MessageResponse message, CancellationToken ct);
 }

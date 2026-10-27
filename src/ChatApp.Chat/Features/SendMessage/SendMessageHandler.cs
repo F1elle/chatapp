@@ -1,7 +1,6 @@
 using ChatApp.Chat.Domain;
-using ChatApp.Chat.Features.Abstractions;
 using ChatApp.Chat.Features.Common;
-using ChatApp.Chat.Features.Common.Contracts;
+using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common.Abstractions;
 using CSharpFunctionalExtensions;
@@ -10,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ChatApp.Chat.Features.SendMessage;
 
 [RegisterScoped]
-public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto, ChatError>>
+public class SendMessageHandler : IHandler<SendMessageCommand, Result<SendMessageResult, ChatError>>
 {
     private readonly ChatDbContext _dbContext;
     private readonly IChatAccessService _accessService;
@@ -27,7 +26,7 @@ public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto
         _logger = logger;
     }
 
-    public async Task<Result<MessageDto, ChatError>> Handle(
+    public async Task<Result<SendMessageResult, ChatError>> Handle(
         SendMessageCommand command,
         CancellationToken ct
     )
@@ -94,7 +93,7 @@ public class SendMessageHandler : IHandler<SendMessageCommand, Result<MessageDto
 
                 await transaction.CommitAsync(CancellationToken.None);
 
-                return new MessageDto(
+                return new SendMessageResult(
                     message.Id,
                     message.SenderId,
                     message.Content,

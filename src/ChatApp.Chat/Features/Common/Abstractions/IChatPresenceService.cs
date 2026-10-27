@@ -1,8 +1,9 @@
 namespace ChatApp.Chat.Features.Abstractions;
 
+[Obsolete]
 public interface IChatPresenceService
 {
     Task<HashSet<Guid>> GetActiveParticipantsAsync(Guid chatId, CancellationToken ct);
-    Task MarkActiveAsync(Guid chatId, Guid userId, CancellationToken ct); 
-    Task MarkInactiveAsync(Guid chatId, Guid userId, CancellationToken ct); 
+    Task MarkActiveAsync(Guid chatId, Guid userId, CancellationToken ct);
+    Task MarkInactiveAsync(Guid chatId, Guid userId, CancellationToken ct);
 }

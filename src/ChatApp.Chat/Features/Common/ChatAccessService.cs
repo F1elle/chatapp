@@ -1,8 +1,7 @@
-using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace ChatApp.Chat.Infrastructure.Security;
+namespace ChatApp.Chat.Features.Common;
 
 public sealed class ChatAccessService : IChatAccessService
 {

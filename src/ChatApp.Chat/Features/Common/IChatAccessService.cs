@@ -1,4 +1,4 @@
-namespace ChatApp.Chat.Features.Common.Abstractions;
+namespace ChatApp.Chat.Features.Common;
 
 public interface IChatAccessService
 {

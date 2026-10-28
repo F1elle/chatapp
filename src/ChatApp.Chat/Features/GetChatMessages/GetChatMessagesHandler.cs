@@ -1,5 +1,4 @@
 using ChatApp.Chat.Features.Common;
-using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Common;
 using ChatApp.Common.Abstractions;

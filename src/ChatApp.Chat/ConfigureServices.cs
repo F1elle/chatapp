@@ -1,5 +1,6 @@
 using System.Text;
-using ChatApp.Chat.Features.Abstractions;
+using ChatApp.Chat.Features.Common;
+using ChatApp.Chat.Features.Common.Abstractions;
 using ChatApp.Chat.Infrastructure.Data;
 using ChatApp.Chat.Infrastructure.Redis;
 using ChatApp.Chat.Infrastructure.Security;
@@ -174,21 +175,5 @@ public static class ConfigureServices
             );
 
         builder.Services.AddSignalR();
-
-        // // messaging bus
-        // builder.Services.AddRebus(configure =>
-        //     configure.Transport(t => t.UseRabbitMq("link", "queue-name")) // TODO add link, queue name
-        // // .Routing(r => r.TypeBased().Map<type>("queue-name"))
-        // );
-
-        // builder.Services.AddRebus(configure => configure
-        //     .Transport(t => t.UseRabbitMq("amqp://localhost", "orders-queue"))
-        //     .Options(o =>
-        //     {
-        //         o.RetryStrategy(maxDeliveryAttempts: 5);
-        //         o.SimpleRetryStrategy(errorQueueAddress: "orders-error");
-        //     })
-        //     .Logging(l => l.MicrosoftExtensionsLogging(loggerFactory))
-        // );
     }
 }

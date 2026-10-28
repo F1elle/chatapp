@@ -1,4 +1,4 @@
-using ChatApp.Chat.Features.Abstractions;
+using ChatApp.Chat.Features.Common.Abstractions;
 using StackExchange.Redis;
 
 namespace ChatApp.Chat.Infrastructure.Redis;

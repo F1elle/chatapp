@@ -1,4 +1,5 @@
 ## priority
+- [ ] proper logging everywhere
 - [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 - [ ] record at the very bottom of ChatEndpoints
 - [ ] proper errors for endpoints (todo in GetUserChatsRoute)

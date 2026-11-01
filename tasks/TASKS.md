@@ -3,6 +3,7 @@
 - [ ] signalr hub - groups, backplane, probably remove RedisChatPersistence
 - [ ] record at the very bottom of ChatEndpoints
 - [ ] proper errors for endpoints (todo in GetUserChatsRoute)
+- [ ] CreateChat fix participant list
 
 ## scope
 - [ ] direct chat
